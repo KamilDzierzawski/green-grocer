@@ -1,4 +1,4 @@
-package edu.kdmk.greengrocer.ui.navigation
+package edu.kdmk.greengrocer.ui.view.navigation
 
 import android.util.Log
 import androidx.compose.material.icons.Icons

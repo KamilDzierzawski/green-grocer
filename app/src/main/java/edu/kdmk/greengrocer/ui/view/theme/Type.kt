@@ -1,4 +1,4 @@
-package edu.kdmk.greengrocer.ui.theme
+package edu.kdmk.greengrocer.ui.view.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

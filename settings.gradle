@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "greenGrocer"
-include(":app")
+rootProject.name = "greengrocer"
+include ':app'

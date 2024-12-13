@@ -1,4 +1,4 @@
-package edu.kdmk.greengrocer.ui.screens
+package edu.kdmk.greengrocer.ui.view.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun HomeScreen() {
+fun SearchScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -21,7 +21,7 @@ fun HomeScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Home Screen",
+            text = "Search Screen",
             fontSize = 40.sp,
             color = Color.Black
         )
