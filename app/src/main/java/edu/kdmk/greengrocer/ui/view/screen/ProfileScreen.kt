@@ -26,7 +26,7 @@ import edu.kdmk.greengrocer.ui.viewmodel.ProfileViewModel
 fun ProfileScreen(onLogout: () -> Unit) {
     val context = LocalContext.current
 
-    val authRepository = remember { AuthRepository(FirebaseAuth.getInstance(), Firebase) }
+    val authRepository = remember { AuthRepository(FirebaseAuth.getInstance()) }
     val localStorageRepository = remember { LocalStorageRepository(context) }
     val profileViewModel = remember { ProfileViewModel(authRepository, localStorageRepository) }
 
