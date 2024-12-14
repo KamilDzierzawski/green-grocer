@@ -18,39 +18,49 @@ import edu.kdmk.greengrocer.ui.view.navigation.NavigationItem
 fun MainScreen() {
     val navController = rememberNavController()
 
-    // Używamy remember i mutableStateOf do kontrolowania stanu wybranej zakładki
     val selectedRoute = remember { mutableStateOf(NavigationItem.Home.route) }  // Tworzymy stan dla wybranej zakładki
+
+    val isLoggedIn = remember { mutableStateOf(true) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            BottomNavigationBar(
-                selectedRoute = selectedRoute.value,  // Przekazujemy stan wybranej zakładki
-                onItemSelected = { item ->
-                    // Zmieniamy stan w navController przy wybraniu nowej zakładki
-                    selectedRoute.value = item.route  // Zmiana stanu
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationRoute ?: item.route) {
-                            saveState = true
+            if (isLoggedIn.value) {
+                BottomNavigationBar(
+                    selectedRoute = NavigationItem.Home.route,
+                    onItemSelected = { item ->
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.startDestinationRoute ?: item.route) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
+                        Log.d("MainScreen", "Selected route: ${item.route}")
                     }
-                    // Logowanie po kliknięciu
-                    Log.d("MainScreen", "Selected route: ${item.route}")
-                }
-            )
+                )
+            }
         }
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = NavigationItem.Home.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(NavigationItem.Home.route) { HomeScreen() }
-            composable(NavigationItem.Search.route) { SearchScreen() }
-            composable(NavigationItem.AddPost.route) { AddPostScreen() }
-            composable(NavigationItem.Profile.route) { ProfileScreen() }
+        if (isLoggedIn.value) {
+            NavHost(
+                navController = navController,
+                startDestination = NavigationItem.Home.route,
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                composable(NavigationItem.Home.route) { HomeScreen() }
+                composable(NavigationItem.Search.route) { SearchScreen() }
+                composable(NavigationItem.AddPost.route) { AddPostScreen() }
+                composable(NavigationItem.Profile.route) {
+                    ProfileScreen(
+                        onLogout = {
+                            isLoggedIn.value = false // Zmieniamy stan na false po wylogowaniu
+                        }
+                    )
+                }
+            }
+        } else {
+            AuthScreen()
         }
     }
 }

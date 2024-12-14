@@ -9,13 +9,11 @@ import javax.inject.Inject
 
 class AuthRepository (
     private val auth: FirebaseAuth,
-    private val firebase: Firebase
 ) {
-    private val db = firebase.firestore
 
     fun registerUser(
         authUser: AuthUser,
-        onSuccess: () -> Unit,
+        onSuccess: (AuthUser) -> Unit,  // Przekazujemy AuthUser z ID
         onFailure: (Exception) -> Unit
     ) {
         if (authUser.email.isNullOrEmpty() || authUser.password.isNullOrEmpty()) {
@@ -23,27 +21,42 @@ class AuthRepository (
             return
         }
 
-        auth.createUserWithEmailAndPassword(authUser.email!!, authUser.password!!)
+        auth.createUserWithEmailAndPassword(authUser.email, authUser.password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val uid = auth.currentUser?.uid
                     if (uid != null) {
-                        val userDetails = mapOf(
-                            "fname" to authUser.fname,
-                            "lname" to authUser.lname,
-                            "phone" to authUser.phone,
-                            "email" to authUser.email,
-                            "createdAt" to FieldValue.serverTimestamp()
-                        )
 
-                        db.collection("users").document(uid).set(userDetails)
-                            .addOnSuccessListener { onSuccess() }
-                            .addOnFailureListener { exception -> onFailure(exception) }
+                        val updatedAuthUser = authUser.copy(id = uid)
+
+                        onSuccess(updatedAuthUser)
                     } else {
                         onFailure(Exception("Failed to retrieve user UID"))
                     }
                 } else {
                     onFailure(task.exception ?: Exception("Registration failed"))
+                }
+            }
+    }
+
+    fun loginUser(
+        email: String,
+        password: String,
+        onSuccess: (AuthUser) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val uid = auth.currentUser?.uid
+                    if (uid != null) {
+                        val authUser = AuthUser(id = uid, email = email, password = password)
+                        onSuccess(authUser)
+                    } else {
+                        onFailure(Exception("User UID is null"))
+                    }
+                } else {
+                    onFailure(task.exception ?: Exception("Login failed"))
                 }
             }
     }

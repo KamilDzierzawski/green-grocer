@@ -2,13 +2,15 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
-    id 'kotlin-kapt'
-    id 'com.google.dagger.hilt.android'
 }
 
 android {
     namespace 'edu.kdmk.greengrocer'
     compileSdk 35
+
+    lintOptions {
+        disable 'RestrictedApi'
+    }
 
     defaultConfig {
         applicationId "edu.kdmk.greengrocer"
@@ -71,10 +73,7 @@ dependencies {
     debugImplementation libs.androidx.ui.tooling
     debugImplementation libs.androidx.ui.test.manifest
 
-    implementation platform('com.google.firebase:firebase-bom:33.7.0') // upewnij się, że jest aktualna wersja
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-firestore'
+    implementation platform(libs.firebase.bom)
 
-    implementation "com.google.dagger:hilt-android:2.51.1"
-    kapt "com.google.dagger:hilt-compiler:2.51.1"
+    implementation libs.gson
 }
