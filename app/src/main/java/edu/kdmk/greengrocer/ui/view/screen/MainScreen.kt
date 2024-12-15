@@ -27,8 +27,9 @@ fun MainScreen() {
         bottomBar = {
             if (isLoggedIn.value) {
                 BottomNavigationBar(
-                    selectedRoute = NavigationItem.Home.route,
+                    selectedRoute = selectedRoute.value,
                     onItemSelected = { item ->
+                        selectedRoute.value = item.route
                         navController.navigate(item.route) {
                             popUpTo(navController.graph.startDestinationRoute ?: item.route) {
                                 saveState = true
@@ -50,11 +51,11 @@ fun MainScreen() {
             ) {
                 composable(NavigationItem.Home.route) { HomeScreen() }
                 composable(NavigationItem.Search.route) { SearchScreen() }
-                composable(NavigationItem.AddPost.route) { AddPostScreen() }
+                composable(NavigationItem.Garden.route) { GardenScreen() }
                 composable(NavigationItem.Profile.route) {
                     ProfileScreen(
                         onLogout = {
-                            isLoggedIn.value = false // Zmieniamy stan na false po wylogowaniu
+                            isLoggedIn.value = false
                         }
                     )
                 }

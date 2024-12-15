@@ -10,9 +10,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
+import edu.kdmk.greengrocer.ui.view.navigation.NavigationItem
 
 @Composable
-fun AddPostScreen() {
+fun GardenScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()

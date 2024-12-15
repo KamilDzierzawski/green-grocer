@@ -3,10 +3,12 @@ package edu.kdmk.greengrocer.ui.view.navigation
 import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
@@ -20,7 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 sealed class NavigationItem(val route: String, val title: String, val icon: ImageVector, val selectedIcon: ImageVector) {
     data object Home : NavigationItem("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
     data object Search : NavigationItem("search", "Search", Icons.Filled.Search, Icons.Outlined.Search)
-    data object AddPost : NavigationItem("addPost", "Add Post", Icons.Filled.Add, Icons.Outlined.Add)
+    data object Garden : NavigationItem("garden", "Garden", Icons.Filled.Grass, Icons.Outlined.Grass)
     data object Profile : NavigationItem("profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
 }
 
@@ -32,7 +34,7 @@ fun BottomNavigationBar(
     val items = listOf(
         NavigationItem.Home,
         NavigationItem.Search,
-        NavigationItem.AddPost,
+        NavigationItem.Garden,
         NavigationItem.Profile
     )
 

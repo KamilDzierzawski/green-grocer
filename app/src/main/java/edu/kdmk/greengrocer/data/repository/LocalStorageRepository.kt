@@ -5,7 +5,9 @@ import android.content.SharedPreferences
 import com.google.gson.Gson
 import edu.kdmk.greengrocer.data.model.AuthUser
 
-class LocalStorageRepository(private val context: Context) {
+class LocalStorageRepository(
+    private val context: Context
+) {
 
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
