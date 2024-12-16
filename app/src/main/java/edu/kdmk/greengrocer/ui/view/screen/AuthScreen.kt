@@ -96,13 +96,13 @@ fun AuthOptionsScreen(authViewModel: AuthViewModel) {
                 LoginScreen(authViewModel)
                 //Spacer(modifier = Modifier.height(16.dp))
                 TextButton(onClick = { isLoginScreen = false }) {
-                    Text("Do not have an account? Register")
+                    Text("Do not have an account? Sign up")
                 }
             } else {
                 RegisterScreen(authViewModel)
                 //Spacer(modifier = Modifier.height(16.dp))
                 TextButton(onClick = { isLoginScreen = true }) {
-                    Text("Have account? Login")
+                    Text("Already have an account? Log in")
                 }
             }
         }
