@@ -38,10 +38,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.storage
 import edu.kdmk.greengrocer.R
 import edu.kdmk.greengrocer.data.model.AuthUser
 import edu.kdmk.greengrocer.data.repository.AuthRepository
 import edu.kdmk.greengrocer.data.repository.LocalStorageRepository
+import edu.kdmk.greengrocer.data.repository.StorageRepository
 import edu.kdmk.greengrocer.data.repository.UserRepository
 import edu.kdmk.greengrocer.ui.viewmodel.AuthViewModel
 import edu.kdmk.greengrocer.ui.viewmodel.LoginState
@@ -55,7 +58,8 @@ fun AuthScreen() {
     val authRepository = remember { AuthRepository(FirebaseAuth.getInstance()) }
     val localStorageRepository = remember { LocalStorageRepository(context) }
     val userRepository = remember { UserRepository(Firebase) }
-    val authViewModel = remember { AuthViewModel(authRepository, localStorageRepository, userRepository) }
+    val storageRepository = remember { StorageRepository(FirebaseStorage.getInstance()) }
+    val authViewModel = remember { AuthViewModel(authRepository, localStorageRepository, userRepository, storageRepository) }
 
     val loginState by authViewModel.loginState.collectAsState()
 

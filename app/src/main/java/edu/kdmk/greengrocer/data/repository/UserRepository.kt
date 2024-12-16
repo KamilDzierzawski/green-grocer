@@ -33,6 +33,32 @@ class UserRepository(
         }
     }
 
+    fun updateUserProfile(
+        user: AuthUser,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val uid = user.id
+
+        if (uid != null) {
+            val userDetails = mapOf(
+                "fname" to user.fname,
+                "lname" to user.lname,
+                "phone" to user.phone
+            )
+
+            db.collection("users").document(uid).update(userDetails)
+                .addOnSuccessListener {
+                    onSuccess()
+                }
+                .addOnFailureListener { exception ->
+                    onFailure(exception)
+                }
+        } else {
+            onFailure(Exception("User ID is null"))
+        }
+    }
+
     fun getUserFromDatabase(
         authUser: AuthUser,
         onSuccess: (AuthUser) -> Unit,
