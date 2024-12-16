@@ -123,7 +123,9 @@ fun AuthOptionsScreen(authViewModel: AuthViewModel) {
 }
 
 @Composable
-fun LoginScreen(authViewModel: AuthViewModel) {
+fun LoginScreen(
+    authViewModel: AuthViewModel,
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -144,7 +146,7 @@ fun LoginScreen(authViewModel: AuthViewModel) {
                 .padding(bottom = 16.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        //Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
             value = email,
@@ -188,7 +190,9 @@ fun LoginScreen(authViewModel: AuthViewModel) {
 }
 
 @Composable
-fun RegisterScreen(authViewModel: AuthViewModel) {
+fun RegisterScreen(
+    authViewModel: AuthViewModel,
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var fname by remember { mutableStateOf("") }
@@ -208,7 +212,7 @@ fun RegisterScreen(authViewModel: AuthViewModel) {
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "App Logo",
             modifier = Modifier
-                .size(250.dp)
+                .size(150.dp)
                 .padding(bottom = 16.dp)
         )
 

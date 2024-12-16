@@ -52,6 +52,13 @@ class LocalStorageRepository(
         }
     }
 
+    fun deleteUserProfileImage() {
+        val imageFile = File(imageFilePath)
+        if (imageFile.exists()) {
+            imageFile.delete()
+        }
+    }
+
     fun clearUserData() {
         val editor = sharedPreferences.edit()
         editor.remove("user_data")

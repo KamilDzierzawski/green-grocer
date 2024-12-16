@@ -52,4 +52,22 @@ class StorageRepository(
                 onFailure(exception)
             }
     }
+
+    fun deleteUserProfileImage(
+        userId: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val userProfileRef = storageReference.child("users/$userId/profile_image.jpg")
+
+        userProfileRef.delete()
+            .addOnSuccessListener {
+                Log.d("StorageRepository", "Image deleted successfully")
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                Log.e("StorageRepository", "Failed to delete image: ${exception.message}")
+                onFailure(exception)
+            }
+    }
 }

@@ -22,7 +22,7 @@ fun GardenScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Add Post Screen",
+            text = "Garden",
             fontSize = 40.sp,
             color = Color.Black
         )

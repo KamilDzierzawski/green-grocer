@@ -39,26 +39,26 @@ class ProfileViewModel(
         _isImageLoading.value = false
     }
 
+    fun deleteUserProfileImage(userId: String) {
+        localStorageRepository.deleteUserProfileImage()
+        storageRepository.deleteUserProfileImage(userId, {
+            _userProfileImage.value = null
+        }, {
+            Log.e("ProfileViewModel", "Failed to delete user profile image: ${it.message}")
+        })
+    }
+
     fun uploadUserProfileImage(userId: String, imageFile: File, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        // Save the image locally
         localStorageRepository.saveUserProfileImage(imageFile)
 
-        // Save the image in Firebase Storage
         storageRepository.uploadUserProfileImage(userId, imageFile, {
-            // After successful upload
             _userProfileImage.value = imageFile
             onSuccess()
         }, onFailure)
     }
 
     fun updateUserProfile(user: AuthUser) {
-        // Save the updated user data locally
         localStorageRepository.saveUserData(user)
-
-        // Log to confirm the data
-        Log.d("ProfileViewModel", "User data updated: $user")
-
-        // Update the user profile in the remote repository (e.g., Firebase)
         userRepository.updateUserProfile(user, {
             Log.d("ProfileViewModel", "User profile updated successfully")
         }, {
