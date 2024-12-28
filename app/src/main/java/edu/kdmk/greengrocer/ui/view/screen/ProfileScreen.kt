@@ -16,12 +16,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -186,54 +190,123 @@ fun ProfileScreen(onLogout: () -> Unit) {
                 .fillMaxWidth()
                 .padding(8.dp)
         ) {
-            // Section 2: User data
+            // Kolumna do przechowywania informacji o użytkowniku
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp) // Odstępy między elementami
             ) {
-                UserDataField(label = "ID", value = userData?.id ?: "N/A")
-                UserDataField(label = "Email", value = userData?.email ?: "N/A")
-                UserDataField(label = "First Name", value = fname)
-                UserDataField(label = "Last Name", value = lname)
-                UserDataField(label = "Phone", value = phone)
-            }
+                // Imię i nazwisko w jednej linii
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${userData?.fname ?: "First Name"} ${userData?.lname ?: "Last Name"}",
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                    IconButton(
+                        onClick = { isEditDialogOpen = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit user data"
+                        )
+                    }
 
-            IconButton(
-                onClick = { isEditDialogOpen = true },
-                modifier = Modifier.align(Alignment.TopEnd)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit user data"
-                )
-            }
-
-            // Edit dialog
-            if (isEditDialogOpen) {
-                EditProfileDialog(
-                    fname = fname,
-                    lname = lname,
-                    phone = phone,
-                    onSave = {
-                        val updatedUser = userData?.copy(
+                    // Edit dialog
+                    if (isEditDialogOpen) {
+                        EditProfileDialog(
                             fname = fname,
                             lname = lname,
-                            phone = phone
+                            phone = phone,
+                            onSave = {
+                                val updatedUser = userData?.copy(
+                                    fname = fname,
+                                    lname = lname,
+                                    phone = phone
+                                )
+
+                                if (updatedUser != null) {
+                                    profileViewModel.updateUserProfile(updatedUser)
+                                }
+
+                                isEditDialogOpen = false
+                            },
+                            onCancel = {
+                                isEditDialogOpen = false
+                            },
+                            onFnameChange = { fname = it },
+                            onLnameChange = { lname = it },
+                            onPhoneChange = { phone = it }
                         )
+                    }
 
-                        if (updatedUser != null) {
-                            profileViewModel.updateUserProfile(updatedUser)
+                }
+
+                // Szczegóły użytkownika (telefon i email)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp) // Odstępy między elementami
+                ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = "Details",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Email, // Ikona email
+                            contentDescription = "Email icon",
+                            tint = Color.Gray,
+                            modifier = Modifier.size(30.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = userData?.email ?: "N/A",
+                            )
+                            Text(
+                                text = "Email",
+                                color = Color.Gray
+                            )
                         }
+                    }
 
-                        isEditDialogOpen = false
-                    },
-                    onCancel = {
-                        isEditDialogOpen = false
-                    },
-                    onFnameChange = { fname = it },
-                    onLnameChange = { lname = it },
-                    onPhoneChange = { phone = it }
-                )
+                    // Telefon
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Phone, // Ikona telefonu
+                            contentDescription = "Phone icon",
+                            tint = Color.Gray,
+                            modifier = Modifier.size(30.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = userData?.phone ?: "N/A",
+                                //style = MaterialTheme.typography.body1
+                            )
+                            Text(
+                                text = "Phone",
+                                //fontSize = 20.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
             }
         }
 
