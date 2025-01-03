@@ -6,7 +6,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import java.io.File
 
-class StorageRepository(
+class UserStorageRepository(
     private val db: FirebaseStorage
 ) {
     private val storageReference: StorageReference = db.reference

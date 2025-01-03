@@ -1,24 +1,20 @@
 package edu.kdmk.greengrocer.ui.viewmodel
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
 import edu.kdmk.greengrocer.data.model.AuthUser
 import edu.kdmk.greengrocer.data.repository.AuthRepository
 import edu.kdmk.greengrocer.data.repository.LocalStorageRepository
-import edu.kdmk.greengrocer.data.repository.StorageRepository
-import edu.kdmk.greengrocer.data.repository.UserRepository
+import edu.kdmk.greengrocer.data.repository.UserStorageRepository
+import edu.kdmk.greengrocer.data.repository.UserDatabaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.io.File
 
 class AuthViewModel(
     private val authRepository: AuthRepository,
     private val localStorageRepository: LocalStorageRepository,
-    private val userRepository: UserRepository,
-    private val storageRepository: StorageRepository
+    private val userDatabaseRepository: UserDatabaseRepository,
+    private val storageRepository: UserStorageRepository
 ) : ViewModel() {
 
     private val _registrationState = MutableStateFlow<RegistrationState>(RegistrationState.Idle)
@@ -46,7 +42,7 @@ class AuthViewModel(
         authRepository.registerUser(
             authUser,
             onSuccess = { updatedAuthUser ->
-                userRepository.addUserToDatabase(updatedAuthUser,
+                userDatabaseRepository.addUserToDatabase(updatedAuthUser,
                     onSuccess = {
                         localStorageRepository.saveUserData(updatedAuthUser)
                         _registrationState.value = RegistrationState.Success
@@ -69,7 +65,7 @@ class AuthViewModel(
         authRepository.loginUser(
             email, password,
             onSuccess = { authUser ->
-                userRepository.getUserFromDatabase(
+                userDatabaseRepository.getUserFromDatabase(
                     authUser,
                     onSuccess = { updatedUser ->
                         localStorageRepository.saveUserData(updatedUser)

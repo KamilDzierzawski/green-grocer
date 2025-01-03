@@ -11,14 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,23 +27,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.storage
 import edu.kdmk.greengrocer.R
 import edu.kdmk.greengrocer.data.model.AuthUser
 import edu.kdmk.greengrocer.data.repository.AuthRepository
 import edu.kdmk.greengrocer.data.repository.LocalStorageRepository
-import edu.kdmk.greengrocer.data.repository.StorageRepository
-import edu.kdmk.greengrocer.data.repository.UserRepository
+import edu.kdmk.greengrocer.data.repository.UserStorageRepository
+import edu.kdmk.greengrocer.data.repository.UserDatabaseRepository
 import edu.kdmk.greengrocer.ui.viewmodel.AuthViewModel
 import edu.kdmk.greengrocer.ui.viewmodel.LoginState
 import edu.kdmk.greengrocer.ui.viewmodel.RegistrationState
-import java.util.Locale
 
 @Composable
 fun AuthScreen() {
@@ -57,9 +48,9 @@ fun AuthScreen() {
 
     val authRepository = remember { AuthRepository(FirebaseAuth.getInstance()) }
     val localStorageRepository = remember { LocalStorageRepository(context) }
-    val userRepository = remember { UserRepository(Firebase) }
-    val storageRepository = remember { StorageRepository(FirebaseStorage.getInstance()) }
-    val authViewModel = remember { AuthViewModel(authRepository, localStorageRepository, userRepository, storageRepository) }
+    val userDatabaseRepository = remember { UserDatabaseRepository(Firebase) }
+    val userStorageRepository = remember { UserStorageRepository(FirebaseStorage.getInstance()) }
+    val authViewModel = remember { AuthViewModel(authRepository, localStorageRepository, userDatabaseRepository, userStorageRepository) }
 
     val loginState by authViewModel.loginState.collectAsState()
 

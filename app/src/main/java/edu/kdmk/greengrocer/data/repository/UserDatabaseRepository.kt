@@ -5,7 +5,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import edu.kdmk.greengrocer.data.model.AuthUser
 
-class UserRepository(
+class UserDatabaseRepository(
     private val firebase: Firebase
 ) {
     private val db = firebase.firestore

@@ -7,15 +7,15 @@ import androidx.lifecycle.ViewModel
 import edu.kdmk.greengrocer.data.model.AuthUser
 import edu.kdmk.greengrocer.data.repository.AuthRepository
 import edu.kdmk.greengrocer.data.repository.LocalStorageRepository
-import edu.kdmk.greengrocer.data.repository.StorageRepository
-import edu.kdmk.greengrocer.data.repository.UserRepository
+import edu.kdmk.greengrocer.data.repository.UserStorageRepository
+import edu.kdmk.greengrocer.data.repository.UserDatabaseRepository
 import java.io.File
 
 class ProfileViewModel(
     private val authRepository: AuthRepository,
     private val localStorageRepository: LocalStorageRepository,
-    private val storageRepository: StorageRepository,
-    private val userRepository: UserRepository
+    private val userStorageRepository: UserStorageRepository,
+    private val userRepository: UserDatabaseRepository
 ) : ViewModel() {
 
     private val _userProfileImage = MutableLiveData<File?>()
@@ -41,7 +41,7 @@ class ProfileViewModel(
 
     fun deleteUserProfileImage(userId: String) {
         localStorageRepository.deleteUserProfileImage()
-        storageRepository.deleteUserProfileImage(userId, {
+        userStorageRepository.deleteUserProfileImage(userId, {
             _userProfileImage.value = null
         }, {
             Log.e("ProfileViewModel", "Failed to delete user profile image: ${it.message}")
@@ -51,7 +51,7 @@ class ProfileViewModel(
     fun uploadUserProfileImage(userId: String, imageFile: File, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
         localStorageRepository.saveUserProfileImage(imageFile)
 
-        storageRepository.uploadUserProfileImage(userId, imageFile, {
+        userStorageRepository.uploadUserProfileImage(userId, imageFile, {
             _userProfileImage.value = imageFile
             onSuccess()
         }, onFailure)

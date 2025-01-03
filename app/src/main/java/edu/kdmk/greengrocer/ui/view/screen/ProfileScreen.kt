@@ -1,6 +1,5 @@
 package edu.kdmk.greengrocer.ui.view.screen
 
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,7 +27,6 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -58,8 +56,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import edu.kdmk.greengrocer.data.repository.AuthRepository
 import edu.kdmk.greengrocer.data.repository.LocalStorageRepository
-import edu.kdmk.greengrocer.data.repository.StorageRepository
-import edu.kdmk.greengrocer.data.repository.UserRepository
+import edu.kdmk.greengrocer.data.repository.UserStorageRepository
+import edu.kdmk.greengrocer.data.repository.UserDatabaseRepository
 import edu.kdmk.greengrocer.ui.viewmodel.ProfileViewModel
 import java.io.File
 import java.io.FileOutputStream
@@ -70,9 +68,9 @@ fun ProfileScreen(onLogout: () -> Unit) {
 
     val authRepository = remember { AuthRepository(FirebaseAuth.getInstance()) }
     val localStorageRepository = remember { LocalStorageRepository(context) }
-    val storageRepository = remember { StorageRepository(FirebaseStorage.getInstance()) }
-    val userRepository = remember { UserRepository(Firebase) }
-    val profileViewModel = remember { ProfileViewModel(authRepository, localStorageRepository, storageRepository, userRepository) }
+    val userStorageRepository = remember { UserStorageRepository(FirebaseStorage.getInstance()) }
+    val userDatabaseRepository = remember { UserDatabaseRepository(Firebase) }
+    val profileViewModel = remember { ProfileViewModel(authRepository, localStorageRepository, userStorageRepository, userDatabaseRepository) }
 
     val userProfileImage by profileViewModel.userProfileImage.observeAsState()
     val isImageLoading by profileViewModel.isImageLoading.observeAsState(false)
