@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import edu.kdmk.greengrocer.ui.view.navigation.BottomNavigationBar
 import edu.kdmk.greengrocer.ui.view.navigation.NavigationItem
@@ -17,29 +18,30 @@ import edu.kdmk.greengrocer.ui.view.navigation.NavigationItem
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
-
-    val selectedRoute = remember { mutableStateOf(NavigationItem.Home.route) }  // Tworzymy stan dla wybranej zakładki
-
     val isLoggedIn = remember { mutableStateOf(true) }
+
+    // Lista tras, które nie wyświetlają dolnego paska
+    val noBottomBarRoutes = listOf("addGardenItem")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             if (isLoggedIn.value) {
-                BottomNavigationBar(
-                    selectedRoute = selectedRoute.value,
-                    onItemSelected = { item ->
-                        selectedRoute.value = item.route
-                        navController.navigate(item.route) {
-                            popUpTo(navController.graph.startDestinationRoute ?: item.route) {
-                                saveState = true
+                val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+                if (currentRoute !in noBottomBarRoutes) {
+                    BottomNavigationBar(
+                        selectedRoute = currentRoute ?: NavigationItem.Home.route,
+                        onItemSelected = { item ->
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.startDestinationRoute ?: item.route) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
-                        Log.d("MainScreen", "Selected route: ${item.route}")
-                    }
-                )
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -51,7 +53,7 @@ fun MainScreen() {
             ) {
                 composable(NavigationItem.Home.route) { HomeScreen() }
                 composable(NavigationItem.Search.route) { SearchScreen() }
-                composable(NavigationItem.Garden.route) { GardenScreen() }
+                composable(NavigationItem.Garden.route) { GardenScreen(navController) }
                 composable(NavigationItem.Profile.route) {
                     ProfileScreen(
                         onLogout = {
@@ -59,6 +61,7 @@ fun MainScreen() {
                         }
                     )
                 }
+                composable("addGardenItem") { AddGardenItemScreen(navController) }
             }
         } else {
             AuthScreen()
