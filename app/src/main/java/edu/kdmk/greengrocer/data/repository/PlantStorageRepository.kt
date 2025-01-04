@@ -28,4 +28,23 @@ class PlantStorageRepository(
                 onFailure(exception)
             }
     }
+
+    fun getPlantImage(
+        plant: Plant,
+        onSuccess: (File) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val plantImageRef = storageReference.child("plants/${plant.id}/image.jpg")
+
+        val tempFile = File.createTempFile("plant_image", ".jpg")
+
+        plantImageRef.getFile(tempFile)
+            .addOnSuccessListener {
+                onSuccess(tempFile)
+            }
+            .addOnFailureListener { exception ->
+                tempFile.delete()
+                onFailure(exception)
+            }
+    }
 }

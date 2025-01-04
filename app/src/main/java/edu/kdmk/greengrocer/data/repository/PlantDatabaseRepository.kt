@@ -32,4 +32,24 @@ class PlantDatabaseRepository(
                 onFailure(exception)
             }
     }
+
+    fun getPlants(
+        userId: String,
+        onSuccess: (List<Plant>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("plants")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val plants = querySnapshot.documents.mapNotNull { document ->
+                    document.toObject(Plant::class.java)?.copy(id = document.id)
+                }
+                onSuccess(plants)
+            }
+            .addOnFailureListener { exception ->
+                // Handle the error
+                onFailure(exception)
+            }
+    }
 }
