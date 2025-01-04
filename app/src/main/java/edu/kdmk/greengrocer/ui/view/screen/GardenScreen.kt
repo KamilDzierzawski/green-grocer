@@ -125,26 +125,19 @@ fun AddGardenItemScreen(navController: NavController) {
         )
     }
 
-
     var plantName by remember { mutableStateOf("") }
     var plantDescription by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var isNameError by remember { mutableStateOf(false) }
+    var isDescriptionError by remember { mutableStateOf(false) }
+    var isImageError by remember { mutableStateOf(false) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            uri?.let {
-                // Zapisz obrazek do pliku tymczasowego
-                val imageFile = File(context.cacheDir, "garden_image_${System.currentTimeMillis()}.jpg")
-                context.contentResolver.openInputStream(it)?.use { inputStream ->
-                    val outputStream = FileOutputStream(imageFile)
-                    inputStream.copyTo(outputStream)
-                    // Przekaż plik do gardenViewModel
-                    gardenViewModel.addPlantToGarden(plantName, plantDescription, imageFile)
-                }
-            }
-        }
-    )
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+        isImageError = false
+    }
 
     Scaffold(
         topBar = {
@@ -177,16 +170,25 @@ fun AddGardenItemScreen(navController: NavController) {
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                         .clickable {
-                            // Jeśli zdjęcie zostało wybrane, wywołaj funkcję save
-                            selectedImageUri?.let { uri ->
-                                val imageFile = File(context.cacheDir, "garden_image_${System.currentTimeMillis()}.jpg")
-                                context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                                    val outputStream = FileOutputStream(imageFile)
-                                    inputStream.copyTo(outputStream)
-                                    gardenViewModel.addPlantToGarden(plantName, plantDescription, imageFile)
-                                }
+                            // Validate inputs
+                            isNameError = plantName.isEmpty()
+                            isDescriptionError = plantDescription.isEmpty()
+                            isImageError = selectedImageUri == null
+
+                            if (!isNameError && !isDescriptionError && !isImageError) {
+                                gardenViewModel.addPlantToGarden(
+                                    name = plantName,
+                                    description = plantDescription,
+                                    file = selectedImageUri?.let { uri ->
+                                        val file = File(context.cacheDir, "temp_image")
+                                        val inputStream = context.contentResolver.openInputStream(uri)
+                                        val outputStream = FileOutputStream(file)
+                                        inputStream?.copyTo(outputStream)
+                                        file
+                                    }
+                                )
+                                navController.popBackStack()
                             }
-                            navController.popBackStack()
                         }
                         .clip(RoundedCornerShape(8.dp))
                         .padding(8.dp),
@@ -205,34 +207,71 @@ fun AddGardenItemScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(32.dp, 8.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .padding(32.dp, 8.dp)
         ) {
             Text(
                 text = "Add Your Plant",
                 fontSize = 24.sp
             )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             TextField(
                 value = plantName,
-                onValueChange = { plantName = it },
+                onValueChange = {
+                    plantName = it
+                    isNameError = false
+                },
                 label = { Text("Name") },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .border(
+                        width = if (isNameError) 2.dp else 0.dp,
+                        color = if (isNameError) Color.Red else Color.Transparent,
+                        shape = RoundedCornerShape(4.dp)
+                    )
             )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            if (isNameError) {
+                Text("Name is required", color = Color.Red, fontSize = 12.sp)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             TextField(
                 value = plantDescription,
-                onValueChange = { plantDescription = it },
+                onValueChange = {
+                    plantDescription = it
+                    isDescriptionError = false
+                },
                 label = { Text("Description") },
                 modifier = Modifier
+                    .heightIn(min = 100.dp)
                     .fillMaxWidth()
-                    .heightIn(112.dp),
+                    .border(
+                        width = if (isDescriptionError) 2.dp else 0.dp,
+                        color = if (isDescriptionError) Color.Red else Color.Transparent
+                    ),
                 maxLines = 5
             )
 
+            Spacer(modifier = Modifier.height(4.dp))
+
+            if (isDescriptionError) {
+                Text("Description is required", color = Color.Red, fontSize = 12.sp)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             Box(
                 modifier = Modifier
-                    .clickable { imagePickerLauncher.launch("image/*") },
+                    .clickable { imagePickerLauncher.launch("image/*") }
+                    .border(
+                        width = if (isImageError) 2.dp else 0.dp,
+                        color = if (isImageError) Color.Red else Color.Transparent,
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 if (selectedImageUri == null) {
@@ -240,8 +279,7 @@ fun AddGardenItemScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .border(2.dp, Color.Gray, RoundedCornerShape(16.dp)),
+                            .border(2.dp, Color.Gray),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -254,16 +292,21 @@ fun AddGardenItemScreen(navController: NavController) {
                         painter = rememberAsyncImagePainter(model = selectedImageUri),
                         contentDescription = "Selected Image",
                         modifier = Modifier
-                            .fillMaxWidth() // Make the image take full width of the container
-                            .clip(RoundedCornerShape(16.dp))
-                            .aspectRatio(1f) // Preserve aspect ratio
-                            .border(2.dp, Color.Gray, RoundedCornerShape(16.dp))
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .border(2.dp, Color.Gray)
                     )
                 }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+
+            if (isImageError) {
+                Text("Image is required", color = Color.Red, fontSize = 12.sp)
             }
         }
     }
 }
+
 
 
 
