@@ -106,7 +106,7 @@ fun ProfileScreen(onLogout: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            //.background(Color.White)
             .padding(16.dp)
     ) {
         // Section 1: Profile image

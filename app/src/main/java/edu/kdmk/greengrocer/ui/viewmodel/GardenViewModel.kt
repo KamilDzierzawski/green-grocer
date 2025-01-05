@@ -111,7 +111,15 @@ class GardenViewModel(
         plantDatabaseRepository.deletePlant(
             id,
             onSuccess = {
-                Log.d("GardenViewModel", "Plant deleted from garden")
+                plantStorageRepository.deletePlantImage(
+                    id,
+                    onSuccess = {
+                        Log.d("GardenViewModel", "Plant deleted successfully")
+                    },
+                    onFailure = { exception ->
+                        Log.e("GardenViewModel", "Failed to delete plant image: ${exception.message}")
+                    }
+                )
             },
             onFailure = { exception ->
                 Log.e("GardenViewModel", "Failed to delete plant from garden: ${exception.message}")

@@ -2,14 +2,12 @@ package edu.kdmk.greengrocer.ui.view.screen
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,25 +19,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,7 +37,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,8 +54,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -76,15 +63,14 @@ import edu.kdmk.greengrocer.data.model.Plant
 import edu.kdmk.greengrocer.data.repository.LocalStorageRepository
 import edu.kdmk.greengrocer.data.repository.PlantDatabaseRepository
 import edu.kdmk.greengrocer.data.repository.PlantStorageRepository
-import edu.kdmk.greengrocer.ui.view.navigation.NavigationItem
 import edu.kdmk.greengrocer.ui.viewmodel.GardenViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
 @Composable
-fun GardenScreen(navController: NavController) {
+fun GardenScreen(
+    navController: NavController,
+) {
     val context = LocalContext.current
     val localStorageRepository = remember { LocalStorageRepository(context) }
     val plantStorageRepository = remember { PlantStorageRepository(FirebaseStorage.getInstance()) }
@@ -151,20 +137,34 @@ fun PlantList(
     onEditClicked: () -> Unit
 ) {
     Column {
-        IconButton(
-            onClick = {
-                gardenViewModel.loadPlants()
-            },
+        Box(
             modifier = Modifier
-                .align(Alignment.End)
+                .fillMaxWidth()
                 .padding(16.dp)
+
         ) {
-            Icon(
-                imageVector = Icons.Filled.Refresh,
-                contentDescription = "Refresh",
-                tint = Color.Black
+            Text(
+                text = "Your plants",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                //color = Color.Black,
+                modifier = Modifier.align(Alignment.Center) // Wyśrodkowanie napisu w Box
             )
+
+            IconButton(
+                onClick = {
+                    gardenViewModel.loadPlants()
+                },
+                modifier = Modifier.align(Alignment.CenterEnd) // Wyrównanie do prawej
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Refresh,
+                    contentDescription = "Refresh",
+                    //tint = Color.Black
+                )
+            }
         }
+
 
         LazyColumn {
             items(plants) { plant ->
@@ -352,7 +352,8 @@ fun EditGardenItemScreen(
                                         image = if (isImageChanged) {
                                             imageUri?.let { uri ->
                                                 val file = File(context.cacheDir, "temp_image")
-                                                val inputStream = context.contentResolver.openInputStream(uri)
+                                                val inputStream =
+                                                    context.contentResolver.openInputStream(uri)
                                                 val outputStream = FileOutputStream(file)
                                                 inputStream?.copyTo(outputStream)
                                                 file
@@ -392,7 +393,6 @@ fun EditGardenItemScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Pole tekstowe dla nazwy
             TextField(
                 value = name,
                 onValueChange = { name = it },
@@ -402,7 +402,6 @@ fun EditGardenItemScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Pole tekstowe dla gatunku
             TextField(
                 value = species,
                 onValueChange = { species = it },
@@ -412,7 +411,6 @@ fun EditGardenItemScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Pole tekstowe dla opisu
             TextField(
                 value = description,
                 onValueChange = { description = it },
@@ -445,16 +443,6 @@ fun EditGardenItemScreen(
                         )
                     }
                 } else {
-
-                    /*AsyncImage(
-                    model = plant.image,
-                    contentDescription = "Plant Image",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(12.dp)), // Zaokrąglenie rogów zdjęcia
-                        //.border(1.dp, Color.Gray, RoundedCornerShape(12.dp)), // Ramka wokół zdjęcia
-                    contentScale = ContentScale.Crop
-                )*/
                     Image(
                         painter = rememberAsyncImagePainter(model = imageUri),
                         contentDescription = "Selected Image",
@@ -469,7 +457,6 @@ fun EditGardenItemScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Wyświetlanie znacznika czasu
             Text(
                 text = "Added: ${selectedPlant.timestamp?.toDate()}",
                 style = MaterialTheme.typography.bodyMedium,
@@ -554,7 +541,8 @@ fun AddGardenItemScreen(navController: NavController) {
                                     species = plantSpecies,
                                     file = selectedImageUri?.let { uri ->
                                         val file = File(context.cacheDir, "temp_image")
-                                        val inputStream = context.contentResolver.openInputStream(uri)
+                                        val inputStream =
+                                            context.contentResolver.openInputStream(uri)
                                         val outputStream = FileOutputStream(file)
                                         inputStream?.copyTo(outputStream)
                                         file

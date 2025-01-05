@@ -77,7 +77,7 @@ dependencies {
     debugImplementation libs.androidx.ui.tooling
     debugImplementation libs.androidx.ui.test.manifest
 
-    implementation libs.accompanist.swiperefresh
+    implementation libs.androidx.foundation
 
     implementation libs.coil.compose
 
@@ -87,4 +87,5 @@ dependencies {
     implementation platform(libs.firebase.bom)
 
     implementation libs.gson
+
 }

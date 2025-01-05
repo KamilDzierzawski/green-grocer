@@ -47,4 +47,20 @@ class PlantStorageRepository(
                 onFailure(exception)
             }
     }
+
+    fun deletePlantImage(
+        id: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val plantImageRef = storageReference.child("plants/$id/image.jpg")
+
+        plantImageRef.delete()
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
 }
