@@ -121,9 +121,45 @@ class GardenViewModel(
 
     fun setSelectedPlant(plant: Plant) {
         _selectedPlant.value = plant
+        Log.d("GardenViewModel", "Selected plant: $plant")
     }
 
     fun updatePlant(plant: Plant) {
-        Log.d("GardenViewModel", "Updating plant: $plant")
+
+        val oldPlant = plants.value?.find { it.id == plant.id }
+
+        if (oldPlant == null) {
+            Log.e("GardenViewModel", "Old plant not found for ID: ${plant.id}")
+            return
+        }
+
+        if (plant.image != oldPlant.image) {
+            plantStorageRepository.addPlantImage(
+                plant,
+                onSuccess = {
+                    Log.d("GardenViewModel", "Plant image updated successfully")
+                },
+                onFailure = { exception ->
+                    Log.e("GardenViewModel", "Failed to update plant image: ${exception.message}")
+                }
+            )
+        }
+
+        if (plant.name != oldPlant.name ||
+            plant.species != oldPlant.species ||
+            plant.description != oldPlant.description
+        ) {
+            plantDatabaseRepository.updatePlant(
+                plant,
+                onSuccess = {
+                    Log.d("GardenViewModel", "Plant updated successfully")
+                },
+                onFailure = { exception ->
+                    Log.e("GardenViewModel", "Failed to update plant: ${exception.message}")
+                }
+            )
+        } else {
+            Log.d("GardenViewModel", "No changes detected in plant fields")
+        }
     }
 }

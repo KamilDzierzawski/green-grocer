@@ -2,6 +2,7 @@ package edu.kdmk.greengrocer.ui.view.screen
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -97,6 +98,8 @@ fun GardenScreen(navController: NavController) {
         )
     }
 
+    var isListScreen by remember { mutableStateOf(true) }
+
     val plants by gardenViewModel.plants.observeAsState(emptyList())
 
     LaunchedEffect(Unit) {
@@ -108,39 +111,36 @@ fun GardenScreen(navController: NavController) {
             .fillMaxSize()
             //.background(Color.White)
     ) {
-        Column {
-            IconButton(
-                onClick = {
-                    gardenViewModel.loadPlants()
-                },
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Refresh,
-                    contentDescription = "Refresh",
-                    tint = Color.Black
-                )
-            }
-
-            PlantList(plants = plants, gardenViewModel = gardenViewModel, navController = navController)
+        if (isListScreen) {
+            PlantList(
+                plants = plants,
+                gardenViewModel = gardenViewModel,
+                onEditClicked = { isListScreen = false } // Update state here
+            )
+        } else {
+            EditGardenItemScreen(
+                gardenViewModel = gardenViewModel,
+                context = context,
+                onBackClicked = { isListScreen = true }
+            )
         }
 
-        FloatingActionButton(
-            onClick = {
-                navController.navigate("addGardenItem")
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            content = {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = "Add Garden Item"
-                )
-            }
-        )
+        if (isListScreen) {
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate("addGardenItem")
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                content = {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Add Garden Item"
+                    )
+                }
+            )
+        }
     }
 }
 
@@ -148,20 +148,42 @@ fun GardenScreen(navController: NavController) {
 fun PlantList(
     plants: List<Plant>,
     gardenViewModel: GardenViewModel,
-    navController: NavController
-    ) {
-    LazyColumn {
-        items(plants) { plant ->
-            PlantItem(plant, gardenViewModel, navController)
+    onEditClicked: () -> Unit
+) {
+    Column {
+        IconButton(
+            onClick = {
+                gardenViewModel.loadPlants()
+            },
+            modifier = Modifier
+                .align(Alignment.End)
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Refresh,
+                contentDescription = "Refresh",
+                tint = Color.Black
+            )
+        }
+
+        LazyColumn {
+            items(plants) { plant ->
+                PlantItem(
+                    plant = plant,
+                    gardenViewModel = gardenViewModel,
+                    onEditClicked = onEditClicked
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun PlantItem(
     plant: Plant,
     gardenViewModel: GardenViewModel,
-    navController: NavController
+    onEditClicked: () -> Unit // Callback for editing
 ) {
     Box(
         modifier = Modifier
@@ -221,7 +243,8 @@ fun PlantItem(
                     IconButton(
                         onClick = {
                             gardenViewModel.setSelectedPlant(plant)
-                            navController.navigate("editGardenItem")
+                            onEditClicked()
+                            //navController.navigate("editGardenItem")
                         },
                         modifier = Modifier.size(24.dp) // Rozmiar przycisku dopasowany do stylu Material
                     ) {
@@ -260,24 +283,13 @@ fun PlantItem(
 
 @Composable
 fun EditGardenItemScreen(
-    navController: NavController,
+    gardenViewModel: GardenViewModel,
+    context: Context,
+    onBackClicked: () -> Unit
 ) {
-    val context = LocalContext.current
-    val localStorageRepository = remember { LocalStorageRepository(context) }
-    val plantStorageRepository = remember { PlantStorageRepository(FirebaseStorage.getInstance()) }
-    val plantDatabaseRepository = remember { PlantDatabaseRepository(Firebase) }
-
-    val gardenViewModel = remember {
-        GardenViewModel(
-            localStorageRepository = localStorageRepository,
-            plantDatabaseRepository = plantDatabaseRepository,
-            plantStorageRepository = plantStorageRepository
-        )
-    }
 
     val selectedPlant by gardenViewModel.selectedPlant.observeAsState(Plant())
 
-    // Stan do śledzenia danych
     var name by remember { mutableStateOf(selectedPlant.name) }
     var description by remember { mutableStateOf(selectedPlant.description) }
     var species by remember { mutableStateOf(selectedPlant.species) }
@@ -303,7 +315,9 @@ fun EditGardenItemScreen(
                 Row(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .clickable { navController.popBackStack() }
+                        .clickable {
+                            onBackClicked()
+                        }
                         .clip(RoundedCornerShape(8.dp))
                         .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -349,7 +363,8 @@ fun EditGardenItemScreen(
                                     )
                                 )
                             }
-                            navController.popBackStack()
+                            onBackClicked()
+                            gardenViewModel.loadPlants()
                         }
                         .clip(RoundedCornerShape(8.dp))
                         .padding(8.dp),
@@ -430,13 +445,24 @@ fun EditGardenItemScreen(
                         )
                     }
                 } else {
+
+                    /*AsyncImage(
+                    model = plant.image,
+                    contentDescription = "Plant Image",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(12.dp)), // Zaokrąglenie rogów zdjęcia
+                        //.border(1.dp, Color.Gray, RoundedCornerShape(12.dp)), // Ramka wokół zdjęcia
+                    contentScale = ContentScale.Crop
+                )*/
                     Image(
                         painter = rememberAsyncImagePainter(model = imageUri),
                         contentDescription = "Selected Image",
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)
-                            .border(1.dp, Color.Gray)
+                            .border(1.dp, Color.Gray),
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
@@ -665,7 +691,8 @@ fun AddGardenItemScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)
-                            .border(2.dp, Color.Gray)
+                            .border(2.dp, Color.Gray),
+                        contentScale = ContentScale.Crop
                     )
                 }
             }

@@ -61,7 +61,6 @@ fun MainScreen() {
                     )
                 }
                 composable("addGardenItem") { AddGardenItemScreen(navController) }
-                composable("editGardenItem") { EditGardenItemScreen(navController) }
             }
         } else {
             AuthScreen()

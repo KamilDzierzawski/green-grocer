@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -128,7 +129,8 @@ fun ProfileScreen(onLogout: () -> Unit) {
                             modifier = Modifier
                                 .size(150.dp)
                                 .clip(CircleShape)
-                                .background(Color.LightGray)
+                                .background(Color.LightGray),
+                            contentScale = ContentScale.Crop
                         )
                     } ?: run {
                         Icon(

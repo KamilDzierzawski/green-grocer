@@ -69,4 +69,27 @@ class PlantDatabaseRepository(
                 onFailure(exception)
             }
     }
+
+    fun updatePlant(
+        plant: Plant,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val data = mapOf(
+            "name" to plant.name,
+            "species" to plant.species,
+            "description" to plant.description
+        )
+
+        plant.id?.let {
+            db.collection("plants").document(it)
+                .update(data)
+                .addOnSuccessListener {
+                    onSuccess()
+                }
+                .addOnFailureListener { exception ->
+                    onFailure(exception)
+                }
+        }
+    }
 }
