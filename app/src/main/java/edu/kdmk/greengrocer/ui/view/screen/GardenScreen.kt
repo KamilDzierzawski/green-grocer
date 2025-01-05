@@ -32,6 +32,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
@@ -55,7 +58,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
@@ -100,33 +105,26 @@ fun GardenScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            //.background(Color.White)
     ) {
-//        Text(
-//            text = "Garden",
-//            fontSize = 40.sp,
-//            color = Color.Black,
-//            modifier = Modifier.align(Alignment.Center)
-//        )
+        Column {
+            IconButton(
+                onClick = {
+                    gardenViewModel.loadPlants()
+                },
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Refresh,
+                    contentDescription = "Refresh",
+                    tint = Color.Black
+                )
+            }
 
-        IconButton(
-            onClick = {
-                gardenViewModel.loadPlants() // Odświeżanie danych
-            },
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Refresh,
-                contentDescription = "Refresh",
-                tint = Color.Black
-            )
+            PlantList(plants = plants, gardenViewModel = gardenViewModel)
         }
-
-        PlantList(plants = plants)
-
-
 
         FloatingActionButton(
             onClick = {
@@ -146,39 +144,111 @@ fun GardenScreen(navController: NavController) {
 }
 
 @Composable
-fun PlantList(plants: List<Plant>) {
+fun PlantList(
+    plants: List<Plant>,
+    gardenViewModel: GardenViewModel
+    ) {
     LazyColumn {
         items(plants) { plant ->
-            PlantItem(plant)
+            PlantItem(plant, gardenViewModel)
         }
     }
 }
 
 @Composable
-fun PlantItem(plant: Plant) {
-    Row(
+fun PlantItem(
+    plant: Plant,
+    gardenViewModel: GardenViewModel
+) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(16.dp, 8.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
+            .height(100.dp)
+            .padding(16.dp)
     ) {
-        // Obraz rośliny
-        AsyncImage(
-            model = plant.image,
-            contentDescription = "Plant Image",
+        Row(
             modifier = Modifier
-                .size(64.dp)
-                .clip(CircleShape)
-                .border(1.dp, Color.Gray, CircleShape)
-        )
+                .fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
 
-        Spacer(modifier = Modifier.width(16.dp))
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.LightGray)
+                    //.padding(4.dp) // Wyrównanie odstępu zdjęcia
+            ) {
+                AsyncImage(
+                    model = plant.image,
+                    contentDescription = "Plant Image",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(12.dp)), // Zaokrąglenie rogów zdjęcia
+                        //.border(1.dp, Color.Gray, RoundedCornerShape(12.dp)), // Ramka wokół zdjęcia
+                    contentScale = ContentScale.Crop
+                )
+            }
 
-        // Nazwa rośliny
-        Text(
-            text = plant.name,
-            modifier = Modifier.weight(1f)
-        )
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = plant.name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        modifier = Modifier.weight(1f), // Wypełnienie przestrzeni dla nazwy
+                        maxLines = 1
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp)) // Większy odstęp między ikonami
+
+                    IconButton(
+                        onClick = { /* TODO: Action for editing */ },
+                        modifier = Modifier.size(24.dp) // Rozmiar przycisku dopasowany do stylu Material
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreHoriz, // Pozioma wersja trzech kropek
+                            contentDescription = "Edit Options"
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp)) // Większy odstęp między ikonami
+
+                    IconButton(
+                        onClick = {
+                            plant.id?.let { gardenViewModel.deletePlantFromGarden(it) }
+                            gardenViewModel.loadPlants()
+                                  },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Delete"
+                        )
+                    }
+                }
+
+                Text(
+                    text = plant.species,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 4.dp) // Blisko pod nazwą
+                )
+            }
+        }
     }
 }
 
@@ -199,9 +269,11 @@ fun AddGardenItemScreen(navController: NavController) {
 
     var plantName by remember { mutableStateOf("") }
     var plantDescription by remember { mutableStateOf("") }
+    var plantSpecies by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var isNameError by remember { mutableStateOf(false) }
     var isDescriptionError by remember { mutableStateOf(false) }
+    var isSpeciesError by remember { mutableStateOf(false) }
     var isImageError by remember { mutableStateOf(false) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -245,12 +317,14 @@ fun AddGardenItemScreen(navController: NavController) {
                             // Validate inputs
                             isNameError = plantName.isEmpty()
                             isDescriptionError = plantDescription.isEmpty()
+                            isSpeciesError = plantSpecies.isEmpty()
                             isImageError = selectedImageUri == null
 
                             if (!isNameError && !isDescriptionError && !isImageError) {
                                 gardenViewModel.addPlantToGarden(
                                     name = plantName,
                                     description = plantDescription,
+                                    species = plantSpecies,
                                     file = selectedImageUri?.let { uri ->
                                         val file = File(context.cacheDir, "temp_image")
                                         val inputStream = context.contentResolver.openInputStream(uri)
@@ -308,6 +382,30 @@ fun AddGardenItemScreen(navController: NavController) {
 
             if (isNameError) {
                 Text("Name is required", color = Color.Red, fontSize = 12.sp)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            TextField(
+                value = plantSpecies,
+                onValueChange = {
+                    plantSpecies = it
+                    isSpeciesError = false
+                },
+                label = { Text("Species") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = if (isSpeciesError) 2.dp else 0.dp,
+                        color = if (isSpeciesError) Color.Red else Color.Transparent,
+                        shape = RoundedCornerShape(4.dp)
+                    )
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            if (isSpeciesError) {
+                Text("Species is required", color = Color.Red, fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.height(20.dp))

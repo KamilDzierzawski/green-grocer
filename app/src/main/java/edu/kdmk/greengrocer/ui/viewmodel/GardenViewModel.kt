@@ -3,7 +3,6 @@ package edu.kdmk.greengrocer.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import coil.compose.AsyncImagePainter
 import com.google.firebase.Timestamp
 import edu.kdmk.greengrocer.data.model.Plant
 import edu.kdmk.greengrocer.data.repository.LocalStorageRepository
@@ -18,12 +17,14 @@ class GardenViewModel(
 ) {
     fun addPlantToGarden(
         name: String,
+        species: String,
         description: String,
         file: File?
     ) {
         val plant = Plant(
             userId = localStorageRepository.getUserData()?.id ?: "",
             name = name,
+            species = species,
             description = description,
             image = file,
             timestamp = Timestamp.now()
@@ -92,13 +93,24 @@ class GardenViewModel(
                     )
                 }
 
-                // Obsłuż przypadek, gdy lista roślin jest pusta
                 if (plants.isEmpty()) {
                     onSuccess(emptyList())
                 }
             },
             onFailure = { exception ->
                 Log.e("GardenViewModel", "Failed to retrieve plants from garden: ${exception.message}")
+            }
+        )
+    }
+
+    fun deletePlantFromGarden(id: String) {
+        plantDatabaseRepository.deletePlant(
+            id,
+            onSuccess = {
+                Log.d("GardenViewModel", "Plant deleted from garden")
+            },
+            onFailure = { exception ->
+                Log.e("GardenViewModel", "Failed to delete plant from garden: ${exception.message}")
             }
         )
     }

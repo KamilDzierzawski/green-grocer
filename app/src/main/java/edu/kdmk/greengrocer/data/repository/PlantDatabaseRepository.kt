@@ -18,6 +18,7 @@ class PlantDatabaseRepository(
         val data = mapOf(
             "userId" to plant.userId,
             "name" to plant.name,
+            "species" to plant.species,
             "description" to plant.description,
             "timestamp" to plant.timestamp
         )
@@ -46,6 +47,22 @@ class PlantDatabaseRepository(
                     document.toObject(Plant::class.java)?.copy(id = document.id)
                 }
                 onSuccess(plants)
+            }
+            .addOnFailureListener { exception ->
+                // Handle the error
+                onFailure(exception)
+            }
+    }
+
+    fun deletePlant(
+        id: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("plants").document(id)
+            .delete()
+            .addOnSuccessListener {
+                onSuccess()
             }
             .addOnFailureListener { exception ->
                 // Handle the error

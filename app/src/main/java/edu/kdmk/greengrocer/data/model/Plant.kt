@@ -9,6 +9,7 @@ data class Plant(
     val userId: String? = null,
     val name: String = "",
     val description: String = "",
+    val species: String = "",
     val image: File? = null,
     val timestamp: Timestamp? = null
 )
