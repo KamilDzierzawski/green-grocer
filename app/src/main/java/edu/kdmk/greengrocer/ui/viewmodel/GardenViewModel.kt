@@ -15,6 +15,10 @@ class GardenViewModel(
     private val plantDatabaseRepository: PlantDatabaseRepository,
     private val plantStorageRepository: PlantStorageRepository
 ) {
+
+    private val _selectedPlant = MutableLiveData<Plant>()
+    val selectedPlant: LiveData<Plant> get() = _selectedPlant
+
     fun addPlantToGarden(
         name: String,
         species: String,
@@ -113,5 +117,13 @@ class GardenViewModel(
                 Log.e("GardenViewModel", "Failed to delete plant from garden: ${exception.message}")
             }
         )
+    }
+
+    fun setSelectedPlant(plant: Plant) {
+        _selectedPlant.value = plant
+    }
+
+    fun updatePlant(plant: Plant) {
+        Log.d("GardenViewModel", "Updating plant: $plant")
     }
 }

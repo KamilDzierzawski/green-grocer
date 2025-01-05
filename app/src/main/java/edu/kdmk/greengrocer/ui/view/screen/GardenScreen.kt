@@ -63,6 +63,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
@@ -123,7 +124,7 @@ fun GardenScreen(navController: NavController) {
                 )
             }
 
-            PlantList(plants = plants, gardenViewModel = gardenViewModel)
+            PlantList(plants = plants, gardenViewModel = gardenViewModel, navController = navController)
         }
 
         FloatingActionButton(
@@ -146,11 +147,12 @@ fun GardenScreen(navController: NavController) {
 @Composable
 fun PlantList(
     plants: List<Plant>,
-    gardenViewModel: GardenViewModel
+    gardenViewModel: GardenViewModel,
+    navController: NavController
     ) {
     LazyColumn {
         items(plants) { plant ->
-            PlantItem(plant, gardenViewModel)
+            PlantItem(plant, gardenViewModel, navController)
         }
     }
 }
@@ -158,7 +160,8 @@ fun PlantList(
 @Composable
 fun PlantItem(
     plant: Plant,
-    gardenViewModel: GardenViewModel
+    gardenViewModel: GardenViewModel,
+    navController: NavController
 ) {
     Box(
         modifier = Modifier
@@ -216,7 +219,10 @@ fun PlantItem(
                     Spacer(modifier = Modifier.width(8.dp)) // Większy odstęp między ikonami
 
                     IconButton(
-                        onClick = { /* TODO: Action for editing */ },
+                        onClick = {
+                            gardenViewModel.setSelectedPlant(plant)
+                            navController.navigate("editGardenItem")
+                        },
                         modifier = Modifier.size(24.dp) // Rozmiar przycisku dopasowany do stylu Material
                     ) {
                         Icon(
@@ -248,6 +254,201 @@ fun PlantItem(
                     modifier = Modifier.padding(top = 4.dp) // Blisko pod nazwą
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun EditGardenItemScreen(
+    navController: NavController,
+) {
+    val context = LocalContext.current
+    val localStorageRepository = remember { LocalStorageRepository(context) }
+    val plantStorageRepository = remember { PlantStorageRepository(FirebaseStorage.getInstance()) }
+    val plantDatabaseRepository = remember { PlantDatabaseRepository(Firebase) }
+
+    val gardenViewModel = remember {
+        GardenViewModel(
+            localStorageRepository = localStorageRepository,
+            plantDatabaseRepository = plantDatabaseRepository,
+            plantStorageRepository = plantStorageRepository
+        )
+    }
+
+    val selectedPlant by gardenViewModel.selectedPlant.observeAsState(Plant())
+
+    // Stan do śledzenia danych
+    var name by remember { mutableStateOf(selectedPlant.name) }
+    var description by remember { mutableStateOf(selectedPlant.description) }
+    var species by remember { mutableStateOf(selectedPlant.species) }
+    var imageUri by remember { mutableStateOf(selectedPlant.image?.toUri()) }
+    var isImageChanged by remember { mutableStateOf(false) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            imageUri = it
+            isImageChanged = true
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .clickable { navController.popBackStack() }
+                        .clip(RoundedCornerShape(8.dp))
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        modifier = Modifier.padding(4.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Back",
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .clickable {
+                            val hasChanged = name != selectedPlant.name ||
+                                    description != selectedPlant.description ||
+                                    species != selectedPlant.species ||
+                                    isImageChanged
+
+                            if (hasChanged) {
+                                gardenViewModel.updatePlant(
+                                    plant = selectedPlant.copy(
+                                        name = name,
+                                        description = description,
+                                        species = species,
+                                        image = if (isImageChanged) {
+                                            imageUri?.let { uri ->
+                                                val file = File(context.cacheDir, "temp_image")
+                                                val inputStream = context.contentResolver.openInputStream(uri)
+                                                val outputStream = FileOutputStream(file)
+                                                inputStream?.copyTo(outputStream)
+                                                file
+                                            }
+                                        } else {
+                                            selectedPlant.image
+                                        }
+                                    )
+                                )
+                            }
+                            navController.popBackStack()
+                        }
+                        .clip(RoundedCornerShape(8.dp))
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Save,
+                        contentDescription = "Save",
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(32.dp, 8.dp)
+        ) {
+            Text(
+                text = "Edit Plant",
+                fontSize = 24.sp
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Pole tekstowe dla nazwy
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Pole tekstowe dla gatunku
+            TextField(
+                value = species,
+                onValueChange = { species = it },
+                label = { Text("Species") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Pole tekstowe dla opisu
+            TextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 100.dp),
+                maxLines = 5
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Wyświetlanie zdjęcia z możliwością zmiany
+            Box(
+                modifier = Modifier
+                    .clickable { imagePickerLauncher.launch("image/*") }
+                    .border(1.dp, Color.Gray),
+                contentAlignment = Alignment.Center
+            ) {
+                if (imageUri == null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No Image Selected",
+                            color = Color.Gray
+                        )
+                    }
+                } else {
+                    Image(
+                        painter = rememberAsyncImagePainter(model = imageUri),
+                        contentDescription = "Selected Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .border(1.dp, Color.Gray)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Wyświetlanie znacznika czasu
+            Text(
+                text = "Added: ${selectedPlant.timestamp?.toDate()}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
         }
     }
 }

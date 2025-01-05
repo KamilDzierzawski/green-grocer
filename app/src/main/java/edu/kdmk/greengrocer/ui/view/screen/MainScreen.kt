@@ -20,8 +20,7 @@ fun MainScreen() {
     val navController = rememberNavController()
     val isLoggedIn = remember { mutableStateOf(true) }
 
-    // Lista tras, które nie wyświetlają dolnego paska
-    val noBottomBarRoutes = listOf("addGardenItem")
+    val noBottomBarRoutes = listOf("addGardenItem", "editGardenItem")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -62,6 +61,7 @@ fun MainScreen() {
                     )
                 }
                 composable("addGardenItem") { AddGardenItemScreen(navController) }
+                composable("editGardenItem") { EditGardenItemScreen(navController) }
             }
         } else {
             AuthScreen()
