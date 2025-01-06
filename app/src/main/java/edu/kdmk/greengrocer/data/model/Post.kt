@@ -7,12 +7,12 @@ import java.io.File
 data class Post(
     val id: String? = null,
     val userId: String? = null,
+    val type: String = "",
     val title: String = "",
     val description: String = "",
-    val like: Int = 0,
-    val dislike: Int = 0,
     val image: File? = null,
     val timestamp: Timestamp? = null,
     val comments: List<Comment>? = null,
-    val postUser: PostUser? = null
+    val postUser: PostUser? = null,
+    val likes: List<Like>? = null
 )

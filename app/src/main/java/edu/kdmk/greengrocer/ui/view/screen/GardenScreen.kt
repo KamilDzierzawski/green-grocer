@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -466,6 +469,7 @@ fun EditGardenItemScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddGardenItemScreen(navController: NavController) {
     val context = LocalContext.current
@@ -499,36 +503,31 @@ fun AddGardenItemScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .clickable { navController.popBackStack() }
-                        .clip(RoundedCornerShape(8.dp))
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
+            CenterAlignedTopAppBar(
+                title = {
                     Text(
-                        text = "Back",
-                        modifier = Modifier.padding(4.dp)
+                        text = "Add Your Plant",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold, // Pogrubienie tekstu
+                            fontSize = 18.sp            // Dopasowany rozmiar
+                        )
                     )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .clickable {
-                            // Validate inputs
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            // Walidacja danych wejściowych
                             isNameError = plantName.isEmpty()
                             isDescriptionError = plantDescription.isEmpty()
                             isSpeciesError = plantSpecies.isEmpty()
@@ -550,18 +549,16 @@ fun AddGardenItemScreen(navController: NavController) {
                                 )
                                 navController.popBackStack()
                             }
-                        }
-                        .clip(RoundedCornerShape(8.dp))
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Save,
-                        contentDescription = "Save",
-                        modifier = Modifier.padding(4.dp)
-                    )
+                        },
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Save,
+                            contentDescription = "Save"
+                        )
+                    }
                 }
-            }
+            )
         }
     ) { innerPadding ->
         Column(
@@ -570,12 +567,8 @@ fun AddGardenItemScreen(navController: NavController) {
                 .padding(innerPadding)
                 .padding(32.dp, 8.dp)
         ) {
-            Text(
-                text = "Add Your Plant",
-                fontSize = 24.sp
-            )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             TextField(
                 value = plantName,
@@ -585,12 +578,8 @@ fun AddGardenItemScreen(navController: NavController) {
                 },
                 label = { Text("Name") },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = if (isNameError) 2.dp else 0.dp,
-                        color = if (isNameError) Color.Red else Color.Transparent,
-                        shape = RoundedCornerShape(4.dp)
-                    )
+                    .fillMaxWidth(),
+                isError = isNameError
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -609,12 +598,8 @@ fun AddGardenItemScreen(navController: NavController) {
                 },
                 label = { Text("Species") },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = if (isSpeciesError) 2.dp else 0.dp,
-                        color = if (isSpeciesError) Color.Red else Color.Transparent,
-                        shape = RoundedCornerShape(4.dp)
-                    )
+                    .fillMaxWidth(),
+                isError = isSpeciesError
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -634,12 +619,9 @@ fun AddGardenItemScreen(navController: NavController) {
                 label = { Text("Description") },
                 modifier = Modifier
                     .heightIn(min = 100.dp)
-                    .fillMaxWidth()
-                    .border(
-                        width = if (isDescriptionError) 2.dp else 0.dp,
-                        color = if (isDescriptionError) Color.Red else Color.Transparent
-                    ),
-                maxLines = 5
+                    .fillMaxWidth(),
+                maxLines = 5,
+                isError = isDescriptionError
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -652,11 +634,7 @@ fun AddGardenItemScreen(navController: NavController) {
 
             Box(
                 modifier = Modifier
-                    .clickable { imagePickerLauncher.launch("image/*") }
-                    .border(
-                        width = if (isImageError) 2.dp else 0.dp,
-                        color = if (isImageError) Color.Red else Color.Transparent,
-                    ),
+                    .clickable { imagePickerLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
                 if (selectedImageUri == null) {
@@ -669,7 +647,7 @@ fun AddGardenItemScreen(navController: NavController) {
                     ) {
                         Text(
                             text = "Select Image",
-                            color = Color.Gray
+                            color = if (isImageError) Color.Red else Color.Gray
                         )
                     }
                 } else {

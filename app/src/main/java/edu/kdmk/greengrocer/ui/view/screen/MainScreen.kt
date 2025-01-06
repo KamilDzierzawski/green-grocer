@@ -20,7 +20,7 @@ fun MainScreen() {
     val navController = rememberNavController()
     val isLoggedIn = remember { mutableStateOf(true) }
 
-    val noBottomBarRoutes = listOf("addGardenItem", "editGardenItem")
+    val noBottomBarRoutes = listOf("addGardenItem", "addPost")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -50,7 +50,7 @@ fun MainScreen() {
                 startDestination = NavigationItem.Home.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable(NavigationItem.Home.route) { HomeScreen() }
+                composable(NavigationItem.Home.route) { HomeScreen(navController) }
                 composable(NavigationItem.Search.route) { SearchScreen() }
                 composable(NavigationItem.Garden.route) { GardenScreen(navController) }
                 composable(NavigationItem.Profile.route) {
@@ -61,6 +61,7 @@ fun MainScreen() {
                     )
                 }
                 composable("addGardenItem") { AddGardenItemScreen(navController) }
+                composable("addPost") { AddPostScreen(navController) }
             }
         } else {
             AuthScreen()
