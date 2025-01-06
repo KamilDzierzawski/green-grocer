@@ -3,12 +3,16 @@ accompanistSwiperefresh = "0.31.5-beta"
 agp = "8.6.0"
 coilCompose = "2.4.0"
 firebaseBom = "33.7.0"
+foundation = "1.7.6"
+googleHiltCompiler = "2.40.5"
 googleServices = "4.4.2"
 gson = "2.10.1"
 hiltAndroid = "2.51.1"
+hiltAndroidVersion = "2.40.5"
 hiltCompiler = "2.44"
 hiltCompilerVersion = "2.48"
 hiltNavigationCompose = "1.2.0"
+javapoet = "1.13.0"
 kotlin = "1.9.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -19,6 +23,7 @@ activityCompose = "1.9.3"
 composeBom = "2024.04.01"
 googleGmsGoogleServices = "4.4.2"
 firebaseFirestore = "25.1.1"
+material3 = "<latest_version>"
 materialIconsExtended = "1.7.6"
 navigationCompose = "2.8.5"
 firebaseAnalytics = "22.1.2"
@@ -31,6 +36,7 @@ runtimeLivedata = "1.7.6"
 [libraries]
 accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefresh" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
@@ -41,8 +47,11 @@ google-firebase-firestore = { module = "com.google.firebase:firebase-firestore" 
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
+hilt-android-v2405 = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroidVersion" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltCompiler" }
+hilt-compiler-v2405 = { module = "com.google.dagger:hilt-compiler", version.ref = "googleHiltCompiler" }
 hilt-compiler-v248 = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltCompilerVersion" }
+javapoet = { module = "com.squareup.javapoet:javapoet", version.ref = "javapoet" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -64,6 +73,7 @@ firebase-crashlytics-ktx = { group = "com.google.firebase", name = "firebase-cra
 annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
+material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

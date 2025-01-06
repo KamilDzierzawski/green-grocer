@@ -1,7 +1,6 @@
 package edu.kdmk.greengrocer.data.model
 
 import com.google.firebase.Timestamp
-import org.w3c.dom.Comment
 import java.io.File
 
 data class Post(

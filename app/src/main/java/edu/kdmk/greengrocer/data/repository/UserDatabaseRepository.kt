@@ -4,6 +4,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import edu.kdmk.greengrocer.data.model.AuthUser
+import edu.kdmk.greengrocer.data.model.PostUser
 
 class UserDatabaseRepository(
     private val firebase: Firebase
@@ -75,6 +76,35 @@ class UserDatabaseRepository(
 
                     if (updatedUser != null) {
                         onSuccess(updatedUser)
+                    } else {
+                        onFailure(Exception("User data not found"))
+                    }
+                } else {
+                    onFailure(Exception("User document not found in Firestore"))
+                }
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
+
+    fun getPostUserFromDatabase(
+        id: String,
+        onSuccess: (PostUser) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("users").document(id).get()
+            .addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val postUser = documentSnapshot.toObject(PostUser::class.java)?.copy(
+                        id = id,
+                        fname = documentSnapshot.getString("fname") ?: "",
+                        lname = documentSnapshot.getString("lname") ?: "",
+                        phone = documentSnapshot.getString("phone") ?: ""
+                    )
+
+                    if (postUser != null) {
+                        onSuccess(postUser)
                     } else {
                         onFailure(Exception("User data not found"))
                     }

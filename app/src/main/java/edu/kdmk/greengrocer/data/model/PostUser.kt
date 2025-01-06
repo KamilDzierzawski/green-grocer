@@ -4,7 +4,6 @@ import java.io.File
 
 data class PostUser(
     val id: String? = null,
-    val email: String? = "",
     val fname: String = "",
     val lname: String = "",
     val phone: String = "",
