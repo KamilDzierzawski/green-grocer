@@ -146,6 +146,7 @@ class HomeViewModel(
                                         fetchPostComments(
                                             posts = postsWithLikes,
                                             onSuccess = { postsWithComments ->
+                                                Log.d("HomeViewModel", "$postsWithComments posts fetched successfully")
                                                 onSuccess(postsWithComments)
                                             },
                                             onFailure = { exception ->
