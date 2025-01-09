@@ -11,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -34,8 +35,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
@@ -48,6 +51,7 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -140,8 +144,8 @@ fun HomeScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text("Posty") },
+                CenterAlignedTopAppBar(
+                    title = { Text("Posts") },
                     actions = {
                         IconButton(onClick = {
                             coroutineScope.launch {
@@ -280,6 +284,76 @@ fun PostItem(
                         .aspectRatio(1f),  // Let the height adjust based on the image's aspect ratio
                     contentScale = ContentScale.Crop  // Scales the image while maintaining the aspect ratio
                 )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.ThumbUp,
+                        contentDescription = "Like Icon",
+
+                        modifier = Modifier.size(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "${post.likes?.size ?: 0}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black
+                    )
+                }
+
+                Text(
+                    text = "Comments: ${post.comments?.size ?: 0}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 0.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(onClick = {
+                    // Handle like action here
+                }) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.ThumbUp,
+                            contentDescription = "Like Icon",
+                            //tint = if (post.likes?.contains(/* current user id */)) Color.Blue else Color.Gray,
+                            modifier = Modifier.size(16.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        Text(
+                            text = "Like It",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                TextButton(onClick = {
+                    // Handle add comment action here
+                }) {
+                    Text(
+                        text = "Add Comment",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }

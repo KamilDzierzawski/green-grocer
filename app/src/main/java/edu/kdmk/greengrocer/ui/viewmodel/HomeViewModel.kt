@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.auth.User
+import edu.kdmk.greengrocer.data.model.AuthUser
 import edu.kdmk.greengrocer.data.model.Plant
 import edu.kdmk.greengrocer.data.model.Post
 import edu.kdmk.greengrocer.data.repository.CommentDatabaseRepository
@@ -32,16 +34,23 @@ class HomeViewModel(
     private val _plants = MutableLiveData<List<Plant>>()
     val plants: LiveData<List<Plant>> get() = _plants
 
-    val currentUser = localStorageRepository.getUserData()
+//    private val _currentUser = MutableLiveData<AuthUser>();
+//    val currentUser: LiveData<AuthUser>? get() = _currentUser.value
 
     private val _posts = MutableLiveData<List<Post>>()
     val posts: LiveData<List<Post>> get() = _posts
+
+    var currentUser = localStorageRepository.getUserData()
 
     fun loadPlants() {
         getPlantsFromGarden { plantList ->
             _plants.postValue(plantList)
         }
     }
+
+//    fun loadCurrentUser() {
+//        _currentUser.postValue(localStorageRepository.getUserData())
+//    }
 
 
     private fun getPlantsFromGarden(
