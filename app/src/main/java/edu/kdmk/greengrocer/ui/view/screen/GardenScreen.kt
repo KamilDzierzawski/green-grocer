@@ -106,15 +106,7 @@ fun GardenScreen(
                 gardenViewModel = gardenViewModel,
                 onEditClicked = { isListScreen = false } // Update state here
             )
-        } else {
-            EditGardenItemScreen(
-                gardenViewModel = gardenViewModel,
-                context = context,
-                onBackClicked = { isListScreen = true }
-            )
-        }
 
-        if (isListScreen) {
             FloatingActionButton(
                 onClick = {
                     navController.navigate("addGardenItem")
@@ -128,6 +120,12 @@ fun GardenScreen(
                         contentDescription = "Add Garden Item"
                     )
                 }
+            )
+        } else {
+            EditGardenItemScreen(
+                gardenViewModel = gardenViewModel,
+                context = context,
+                onBackClicked = { isListScreen = true }
             )
         }
     }

@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.auth.User
-import edu.kdmk.greengrocer.data.model.AuthUser
+import edu.kdmk.greengrocer.data.model.Comment
+import edu.kdmk.greengrocer.data.model.Like
 import edu.kdmk.greengrocer.data.model.Plant
 import edu.kdmk.greengrocer.data.model.Post
 import edu.kdmk.greengrocer.data.repository.CommentDatabaseRepository
@@ -138,47 +138,15 @@ class HomeViewModel(
         }
     }
 
-    private fun getPosts(
-        onSuccess: (List<Post>) -> Unit
-    ) {
+    private fun getPosts(onSuccess: (List<Post>) -> Unit) {
         postDatabaseRepository.getAllPosts(
             onSuccess = { posts ->
-                fetchPostImages(
+                processPostsSequentially(
                     posts = posts,
-                    onSuccess = { postsWithImages ->
-                        fetchPostUsers(
-                            posts = postsWithImages,
-                            onSuccess = { postsWithUsers ->
-                                fetchPostLikes(
-                                    posts = postsWithUsers,
-                                    onSuccess = { postsWithLikes ->
-                                        fetchPostComments(
-                                            posts = postsWithLikes,
-                                            onSuccess = { postsWithComments ->
-                                                Log.d("HomeViewModel", "$postsWithComments posts fetched successfully")
-                                                onSuccess(postsWithComments)
-                                            },
-                                            onFailure = { exception ->
-                                                Log.e("HomeViewModel", "Failed to fetch post comments: ${exception.message}")
-                                                onSuccess(postsWithLikes)
-                                            }
-                                        )
-                                    },
-                                    onFailure = { exception ->
-                                        Log.e("HomeViewModel", "Failed to fetch post likes: ${exception.message}")
-                                        onSuccess(postsWithUsers)
-                                    }
-                                )
-                            },
-                            onFailure = { exception ->
-                                Log.e("HomeViewModel", "Failed to fetch post users: ${exception.message}")
-                                onSuccess(postsWithImages)
-                            }
-                        )
-                    },
+                    onSuccess = onSuccess,
                     onFailure = { exception ->
-                        Log.e("HomeViewModel", "Failed to fetch post images: ${exception.message}")
-                        onSuccess(posts)
+                        Log.e("HomeViewModel", "Error processing posts: ${exception.message}")
+                        onSuccess(posts) // Zwraca listę bez dodatkowych danych w przypadku błędu
                     }
                 )
             },
@@ -186,6 +154,20 @@ class HomeViewModel(
                 Log.e("HomeViewModel", "Failed to fetch posts: ${exception.message}")
             }
         )
+    }
+
+    private fun processPostsSequentially(
+        posts: List<Post>,
+        onSuccess: (List<Post>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        fetchPostImages(posts, { postsWithImages ->
+            fetchPostUsers(postsWithImages, { postsWithUsers ->
+                fetchPostLikes(postsWithUsers, { postsWithLikes ->
+                    fetchPostComments(postsWithLikes, onSuccess, onFailure)
+                }, onFailure)
+            }, onFailure)
+        }, onFailure)
     }
 
     private fun fetchPostImages(
@@ -348,5 +330,94 @@ class HomeViewModel(
         if (posts.isEmpty()) {
             onSuccess(emptyList())
         }
+    }
+
+    fun toggleLike(postId: String) {
+        val currentPosts = _posts.value ?: return
+        val post = currentPosts.find { it.id == postId } ?: return
+        val currentUserId = currentUser?.id ?: return
+
+        val userAlreadyLiked = post.likes?.any { it.userId == currentUserId } == true
+
+        if (userAlreadyLiked) {
+            val updatedLikes = post.likes?.filterNot { it.userId == currentUserId }
+            val updatedPost = post.copy(likes = updatedLikes)
+
+            likeDatabaseRepository.removeLike(
+                userId = currentUserId,
+                postId = post.id ?: "",
+                onSuccess = {
+                    Log.d("HomeViewModel", "Like removed successfully")
+                    updatePostInList(updatedPost)
+                },
+                onFailure = { exception ->
+                    Log.e("HomeViewModel", "Failed to remove like: ${exception.message}")
+                }
+            )
+        } else {
+            val like = Like(userId = currentUserId, postId = post.id)
+            val updatedLikes = (post.likes ?: emptyList()) + like
+            val updatedPost = post.copy(likes = updatedLikes)
+
+            likeDatabaseRepository.addLike(
+                like = like,
+                onSuccess = {
+                    Log.d("HomeViewModel", "Like added successfully")
+                    // Zaktualizuj listę postów
+                    updatePostInList(updatedPost)
+                },
+                onFailure = { exception ->
+                    Log.e("HomeViewModel", "Failed to add like: ${exception.message}")
+                }
+            )
+        }
+    }
+
+    // Funkcja pomocnicza do aktualizacji posta w liście
+    private fun updatePostInList(updatedPost: Post) {
+        val currentPosts = _posts.value ?: return
+        val updatedPosts = currentPosts.map { post ->
+            if (post.id == updatedPost.id) updatedPost else post
+        }
+        _posts.postValue(updatedPosts)
+    }
+
+    fun addComment(
+        postId: String,
+        content: String
+    ) {
+        val currentPosts = _posts.value ?: return
+        val post = currentPosts.find { it.id == postId } ?: return
+        val currentUserId = currentUser?.id ?: return
+
+        // Tworzymy nowy komentarz
+        val comment = Comment(
+            userId = currentUserId,
+            postId = postId,
+            content = content,
+            timestamp = Timestamp.now(),
+            firstName = currentUser?.fname ?: "",
+            lastName = currentUser?.lname ?: ""
+        )
+
+        // Dodajemy komentarz do bazy danych
+        commentDatabaseRepository.addComment(
+            comment = comment,
+            onSuccess = {
+                Log.d("HomeViewModel", "Comment added successfully")
+
+                // Zaktualizuj listę komentarzy w poście
+                val updatedComments = post.comments?.toMutableList() ?: mutableListOf()
+                updatedComments.add(comment)
+
+                val updatedPost = post.copy(comments = updatedComments)
+
+                // Zaktualizuj posty w liście
+                updatePostInList(updatedPost)
+            },
+            onFailure = { exception ->
+                Log.e("HomeViewModel", "Failed to add comment: ${exception.message}")
+            }
+        )
     }
 }

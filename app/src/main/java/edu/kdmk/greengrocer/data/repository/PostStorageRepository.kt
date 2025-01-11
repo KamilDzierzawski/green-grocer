@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.StorageReference
 import edu.kdmk.greengrocer.data.model.Post
 import java.io.File
@@ -38,25 +39,34 @@ class PostStorageRepository(
     ) {
         val postImageRef = storageReference.child("posts/$id/image.jpg")
 
-        postImageRef.metadata
+        postImageRef.getMetadata()
             .addOnSuccessListener { metadata ->
-                if (metadata != null) {
-                    val tempFile = File.createTempFile("post_image", ".jpg")
+                val tempFile = File.createTempFile("post_image", ".jpg")
 
-                    postImageRef.getFile(tempFile)
-                        .addOnSuccessListener {
-                            onSuccess(tempFile)
-                        }
-                        .addOnFailureListener { exception ->
-                            Log.e("PostImage", "Failed to download image for post $id: ${exception.message}")
-                            tempFile.delete()
-                            onFailure(exception)
-                        }
-                }
+                postImageRef.getFile(tempFile)
+                    .addOnSuccessListener {
+                        onSuccess(tempFile)
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.e(
+                            "PostImage",
+                            "Failed to download image for post $id: ${exception.message}"
+                        )
+                        tempFile.delete()
+                        onFailure(exception)
+                    }
             }
             .addOnFailureListener { exception ->
-                Log.d("PostImage", "No image found for post $id, returning null.")
-                onSuccess(null)
+                if (exception is StorageException && exception.errorCode == StorageException.ERROR_OBJECT_NOT_FOUND) {
+                    Log.d("PostImage", "No image found for post $id, returning null.")
+                    onSuccess(null)
+                } else {
+                    Log.e(
+                        "PostImage",
+                        "Error checking image existence for post $id: ${exception.message}"
+                    )
+                    onFailure(exception)
+                }
             }
     }
 }

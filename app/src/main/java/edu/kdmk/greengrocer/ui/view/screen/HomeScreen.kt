@@ -1,12 +1,9 @@
 package edu.kdmk.greengrocer.ui.view.screen
 
+import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,28 +11,29 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.ThumbUp
@@ -45,43 +43,41 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.storage.FirebaseStorage
+import edu.kdmk.greengrocer.data.model.Comment
 import edu.kdmk.greengrocer.data.model.Plant
 import edu.kdmk.greengrocer.data.model.Post
 import edu.kdmk.greengrocer.data.repository.CommentDatabaseRepository
@@ -93,6 +89,7 @@ import edu.kdmk.greengrocer.data.repository.PostDatabaseRepository
 import edu.kdmk.greengrocer.data.repository.PostStorageRepository
 import edu.kdmk.greengrocer.data.repository.UserDatabaseRepository
 import edu.kdmk.greengrocer.data.repository.UserStorageRepository
+import edu.kdmk.greengrocer.ui.viewmodel.GardenViewModel
 import edu.kdmk.greengrocer.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
 import java.io.File
@@ -137,52 +134,77 @@ fun HomeScreen(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
+    var isCommentScreen by remember { mutableStateOf(false) }
+    var selectedPost by remember { mutableStateOf<Post?>(null) }  // Stan przechowujący wybrany post
+
     LaunchedEffect(Unit) {
         homeViewModel.loadPosts()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text("Posts") },
-                    actions = {
-                        IconButton(onClick = {
-                            coroutineScope.launch {
-                                homeViewModel.loadPosts()
-                                listState.animateScrollToItem(0)
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        if (!isCommentScreen) {
+            Scaffold(
+                topBar = {
+                    CenterAlignedTopAppBar(
+                        title = { Text("Posts") },
+                        actions = {
+                            IconButton(onClick = {
+                                coroutineScope.launch {
+                                    homeViewModel.loadPosts()
+                                    listState.animateScrollToItem(0)
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Refresh,
+                                    contentDescription = "Refresh Posts"
+                                )
                             }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Refresh,
-                                contentDescription = "Refresh Posts"
-                            )
                         }
-                    }
+                    )
+                }
+            ) { paddingValues ->
+                PostList(
+                    posts = posts,
+                    homeViewModel = homeViewModel,
+                    listState = listState,
+                    onCommentClicked = { post ->
+                        selectedPost = post  // Ustawiamy wybrany post
+                        isCommentScreen = true  // Przełączamy na ekran komentarzy
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
                 )
             }
-        ) { paddingValues ->
-            PostList(
-                posts = posts,
-                homeViewModel = homeViewModel,
-                listState = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            )
-        }
 
-        FloatingActionButton(
-            onClick = { navController.navigate("addPost") },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = "Add Post",
-                tint = Color.White
-            )
+            FloatingActionButton(
+                onClick = { navController.navigate("addPost") },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Add Post",
+                    tint = Color.White
+                )
+            }
+
+        } else {
+            // Jeśli jest wybrany post, przekazujemy go do CommentsScreen
+            selectedPost?.let { post ->
+                CommentsScreen(
+                    post = post,
+                    onCommentClicked = { post ->
+                        selectedPost = post  // Ustawiamy wybrany post
+                        isCommentScreen = true  // Przełączamy na ekran komentarzy
+                    },
+                    onBackClicked = { isCommentScreen = false },
+                    homeViewModel = homeViewModel
+                )
+            }
         }
     }
 }
@@ -192,9 +214,9 @@ fun PostList(
     posts: List<Post>,
     homeViewModel: HomeViewModel,
     listState: LazyListState,
+    onCommentClicked: (Post) -> Unit,  // Zmieniony typ argumentu na Post
     modifier: Modifier = Modifier
 ) {
-    // Sortowanie postów od najnowszego do najstarszego
     val sortedPosts = posts.sortedByDescending { it.timestamp?.toDate()?.time ?: 0L }
 
     LazyColumn(
@@ -202,7 +224,11 @@ fun PostList(
         modifier = modifier
     ) {
         items(sortedPosts.size) { index ->
-            PostItem(post = sortedPosts[index], homeViewModel = homeViewModel)
+            PostItem(
+                post = sortedPosts[index],
+                homeViewModel = homeViewModel,
+                onCommentClicked = onCommentClicked  // Przekazanie funkcji do PostItem
+            )
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
@@ -211,6 +237,7 @@ fun PostList(
 @Composable
 fun PostItem(
     post: Post,
+    onCommentClicked: (Post) -> Unit,  // Zmieniony typ argumentu na Post
     homeViewModel: HomeViewModel
 ) {
     Card(
@@ -218,7 +245,10 @@ fun PostItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp, 16.dp, 16.dp, 0.dp)
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -255,16 +285,13 @@ fun PostItem(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Title and Type with Hyphen and Bold
             Text(
                 text = "${post.title} - ${post.type}",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Description Text
             Text(
                 text = post.description,
                 style = MaterialTheme.typography.bodyMedium,
@@ -280,10 +307,9 @@ fun PostItem(
                     painter = rememberAsyncImagePainter(imageUri),
                     contentDescription = null,
                     modifier = Modifier
-                        .fillMaxWidth()  // Takes full width
-                        .aspectRatio(1f),  // Let the height adjust based on the image's aspect ratio
-                    contentScale = ContentScale.Crop  // Scales the image while maintaining the aspect ratio
-                )
+                        .fillMaxWidth()
+                        .aspectRatio(1f),
+                    contentScale = ContentScale.Crop  )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -319,19 +345,22 @@ fun PostItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 0.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 TextButton(onClick = {
-                    // Handle like action here
+                    homeViewModel.toggleLike(post.id ?: "")
                 }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.ThumbUp,
                             contentDescription = "Like Icon",
-                            //tint = if (post.likes?.contains(/* current user id */)) Color.Blue else Color.Gray,
                             modifier = Modifier.size(16.dp)
                         )
 
@@ -340,18 +369,16 @@ fun PostItem(
                         Text(
                             text = "Like It",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
 
                 TextButton(onClick = {
-                    // Handle add comment action here
+                    onCommentClicked(post)  // Przekazujemy post
                 }) {
                     Text(
                         text = "Add Comment",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -362,6 +389,164 @@ fun PostItem(
 fun Timestamp.toReadableTime(): String {
     val formatter = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
     return formatter.format(this.toDate())
+}
+
+@Composable
+fun CommentsScreen(
+    post: Post,  // Przekazujemy post, który będzie wyświetlany na tym ekranie
+    onBackClicked: () -> Unit,
+    onCommentClicked: (Post) -> Unit,
+    homeViewModel: HomeViewModel // Przekazujemy ViewModel, aby dodać komentarz
+) {
+    // Przechowujemy lokalny stan postu, aby móc go modyfikować
+    var localPost by remember { mutableStateOf(post) }
+
+    // Sortowanie komentarzy
+    val sortedComments = localPost.comments?.sortedBy { it.timestamp?.toDate()?.time } ?: emptyList()
+
+    // Zmienna do przechowywania tekstu nowego komentarza
+    var newComment by remember { mutableStateOf("") }
+
+    // Scaffold - layout strukturalny z topBar
+    Scaffold(
+        topBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .clickable {
+                            onBackClicked()
+                        }
+                        .clip(RoundedCornerShape(8.dp))
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        modifier = Modifier.padding(4.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Back",
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // Używamy Box, aby przyczepić TextField do góry
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Wyświetlanie komentarzy
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 80.dp) // Zwiększamy górne odstępy, by tekst nie nakładał się na TextField
+                ) {
+                    items(sortedComments) { comment ->
+                        CommentItem(comment = comment)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+
+                // TextField do dodania komentarza przytwierdzone do góry
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .align(Alignment.TopCenter)
+                ) {
+                    // Row z TextField i przyciskiem "Save"
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    ) {
+                        // Pole tekstowe do wpisania komentarza
+                        TextField(
+                            value = newComment,
+                            onValueChange = { newComment = it },
+                            label = { Text("Add a comment...") },
+                            modifier = Modifier
+                                .fillMaxWidth(0.85f) // Zmniejszamy szerokość, żeby zostało miejsce na przycisk
+                                .padding(end = 8.dp), // Odstęp między TextField a przyciskiem
+                            singleLine = false,
+                            maxLines = 3
+                        )
+
+                        IconButton(
+                            onClick = {
+                                if (newComment.isNotBlank()) {
+                                    // Dodaj komentarz do bazy danych i zaktualizuj UI
+                                    homeViewModel.addComment(
+                                        postId = post.id ?: "",
+                                        content = newComment,
+                                    )
+                                }
+                                onBackClicked()
+                                onCommentClicked(post)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Save,
+                                contentDescription = "Save Comment"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CommentItem(
+    comment: Comment
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "${comment.firstName} ${comment.lastName}",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            comment.timestamp?.let {
+                Text(
+                    text = it.toReadableTime(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = comment.content,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

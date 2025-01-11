@@ -40,4 +40,18 @@ class CommentDatabaseRepository(
                 onFailure(exception)
             }
     }
+
+    fun addComment(
+        comment: Comment,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("comments").add(comment)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
 }
