@@ -3,7 +3,6 @@ package edu.kdmk.greengrocer.data.repository
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import edu.kdmk.greengrocer.data.model.Plant
-import kotlinx.coroutines.tasks.await
 
 class PlantDatabaseRepository(
     private val firebase: Firebase
@@ -29,7 +28,6 @@ class PlantDatabaseRepository(
                 onSuccess(updatedPlant)
             }
             .addOnFailureListener { exception ->
-                // Handle the error
                 onFailure(exception)
             }
     }
@@ -49,7 +47,6 @@ class PlantDatabaseRepository(
                 onSuccess(plants)
             }
             .addOnFailureListener { exception ->
-                // Handle the error
                 onFailure(exception)
             }
     }
@@ -65,7 +62,6 @@ class PlantDatabaseRepository(
                 onSuccess()
             }
             .addOnFailureListener { exception ->
-                // Handle the error
                 onFailure(exception)
             }
     }

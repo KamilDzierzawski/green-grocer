@@ -53,9 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
-import edu.kdmk.greengrocer.data.repository.AuthRepository
 import edu.kdmk.greengrocer.data.repository.LocalStorageRepository
 import edu.kdmk.greengrocer.data.repository.UserStorageRepository
 import edu.kdmk.greengrocer.data.repository.UserDatabaseRepository
@@ -67,11 +65,10 @@ import java.io.FileOutputStream
 fun ProfileScreen(onLogout: () -> Unit) {
     val context = LocalContext.current
 
-    val authRepository = remember { AuthRepository(FirebaseAuth.getInstance()) }
     val localStorageRepository = remember { LocalStorageRepository(context) }
     val userStorageRepository = remember { UserStorageRepository(FirebaseStorage.getInstance()) }
     val userDatabaseRepository = remember { UserDatabaseRepository(Firebase) }
-    val profileViewModel = remember { ProfileViewModel(authRepository, localStorageRepository, userStorageRepository, userDatabaseRepository) }
+    val profileViewModel = remember { ProfileViewModel(localStorageRepository, userStorageRepository, userDatabaseRepository) }
 
     val userProfileImage by profileViewModel.userProfileImage.observeAsState()
     val isImageLoading by profileViewModel.isImageLoading.observeAsState(false)

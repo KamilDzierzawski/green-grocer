@@ -1,7 +1,6 @@
 package edu.kdmk.greengrocer.data.model
 
 import com.google.firebase.Timestamp
-import com.google.type.Date
 import java.io.File
 
 data class Plant(

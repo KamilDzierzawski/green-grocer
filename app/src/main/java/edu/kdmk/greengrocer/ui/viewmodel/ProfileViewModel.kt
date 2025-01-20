@@ -5,14 +5,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import edu.kdmk.greengrocer.data.model.AuthUser
-import edu.kdmk.greengrocer.data.repository.AuthRepository
 import edu.kdmk.greengrocer.data.repository.LocalStorageRepository
 import edu.kdmk.greengrocer.data.repository.UserStorageRepository
 import edu.kdmk.greengrocer.data.repository.UserDatabaseRepository
 import java.io.File
 
 class ProfileViewModel(
-    private val authRepository: AuthRepository,
     private val localStorageRepository: LocalStorageRepository,
     private val userStorageRepository: UserStorageRepository,
     private val userRepository: UserDatabaseRepository

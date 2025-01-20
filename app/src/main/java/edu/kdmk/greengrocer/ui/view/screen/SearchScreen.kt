@@ -2,7 +2,6 @@ package edu.kdmk.greengrocer.ui.view.screen
 
 import android.net.Uri
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +22,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
@@ -35,7 +33,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -63,7 +60,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.Firebase
-import com.google.firebase.Timestamp
 import com.google.firebase.storage.FirebaseStorage
 import edu.kdmk.greengrocer.data.model.Comment
 import edu.kdmk.greengrocer.data.model.Post
@@ -76,13 +72,8 @@ import edu.kdmk.greengrocer.data.repository.PostDatabaseRepository
 import edu.kdmk.greengrocer.data.repository.PostStorageRepository
 import edu.kdmk.greengrocer.data.repository.UserDatabaseRepository
 import edu.kdmk.greengrocer.data.repository.UserStorageRepository
-import edu.kdmk.greengrocer.ui.viewmodel.HomeViewModel
 import edu.kdmk.greengrocer.ui.viewmodel.SearchViewModel
-import kotlinx.coroutines.launch
 import java.io.File
-import java.text.SimpleDateFormat
-import java.time.format.TextStyle
-import java.util.Locale
 
 @Composable
 fun SearchScreen() {
@@ -91,8 +82,6 @@ fun SearchScreen() {
     val firebase = Firebase
 
     val localStorageRepository = remember { LocalStorageRepository(context) }
-    val plantStorageRepository = remember { PlantStorageRepository(firebaseStorage) }
-    val plantDatabaseRepository = remember { PlantDatabaseRepository(firebase) }
     val postDatabaseRepository = remember { PostDatabaseRepository(firebase) }
     val postStorageRepository = remember { PostStorageRepository(firebaseStorage) }
     val userStorageRepository = remember { UserStorageRepository(firebaseStorage) }
@@ -103,8 +92,6 @@ fun SearchScreen() {
     val searchViewModel = remember {
         SearchViewModel(
             localStorageRepository,
-            plantDatabaseRepository,
-            plantStorageRepository,
             postDatabaseRepository,
             postStorageRepository,
             userDatabaseRepository,

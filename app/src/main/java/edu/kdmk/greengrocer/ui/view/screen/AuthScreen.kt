@@ -68,12 +68,7 @@ fun AuthScreen() {
 @Composable
 fun AuthOptionsScreen(authViewModel: AuthViewModel) {
     var isLoginScreen by remember { mutableStateOf(true) }
-    var showLanguageMenu by remember { mutableStateOf(false) }
-    var selectedLanguage by remember { mutableStateOf("pl") } // Domyślny język: Polski
 
-    // Pobierz kontekst do zarządzania językami
-//    val context = LocalContext.current
-//    val resources = context.resources
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -97,19 +92,6 @@ fun AuthOptionsScreen(authViewModel: AuthViewModel) {
                 }
             }
         }
-
-//        Box(
-//            modifier = Modifier
-//                .align(Alignment.BottomEnd)
-//                .padding(16.dp)
-//        ) {
-//            IconButton(onClick = { showLanguageMenu = true }) {
-//                Icon(
-//                    imageVector = Icons.Default.MoreVert,
-//                    contentDescription = resources.getString(R.string.language)
-//                )
-//            }
-//        }
     }
 }
 
@@ -136,8 +118,6 @@ fun LoginScreen(
                 .size(200.dp)
                 .padding(bottom = 16.dp)
         )
-
-        //Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
             value = email,

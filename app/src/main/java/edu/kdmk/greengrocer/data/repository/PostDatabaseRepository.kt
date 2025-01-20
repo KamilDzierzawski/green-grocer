@@ -75,7 +75,7 @@ class PostDatabaseRepository(
                                 post.description.contains(searchText, ignoreCase = true)
                     }
                 } else {
-                    posts // Jeśli searchText jest pusty, zwracamy wszystkie posty
+                    posts
                 }
 
                 onSuccess(filteredPosts)

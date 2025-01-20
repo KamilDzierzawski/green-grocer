@@ -98,7 +98,6 @@ fun GardenScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            //.background(Color.White)
     ) {
         if (isListScreen) {
             PlantList(
@@ -184,7 +183,7 @@ fun PlantList(
 fun PlantItem(
     plant: Plant,
     gardenViewModel: GardenViewModel,
-    onEditClicked: () -> Unit // Callback for editing
+    onEditClicked: () -> Unit
 ) {
     Box(
         modifier = Modifier

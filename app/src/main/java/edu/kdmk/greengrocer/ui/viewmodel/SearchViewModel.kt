@@ -19,8 +19,6 @@ import edu.kdmk.greengrocer.data.repository.UserStorageRepository
 
 class SearchViewModel(
     private val localStorageRepository: LocalStorageRepository,
-    private val plantDatabaseRepository: PlantDatabaseRepository,
-    private val plantStorageRepository: PlantStorageRepository,
     private val postDatabaseRepository: PostDatabaseRepository,
     private val postStorageRepository: PostStorageRepository,
     private val userDatabaseRepository: UserDatabaseRepository,
