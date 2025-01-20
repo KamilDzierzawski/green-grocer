@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,9 +26,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -63,15 +60,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.BeyondBoundsLayout
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.Firebase
@@ -89,7 +86,6 @@ import edu.kdmk.greengrocer.data.repository.PostDatabaseRepository
 import edu.kdmk.greengrocer.data.repository.PostStorageRepository
 import edu.kdmk.greengrocer.data.repository.UserDatabaseRepository
 import edu.kdmk.greengrocer.data.repository.UserStorageRepository
-import edu.kdmk.greengrocer.ui.viewmodel.GardenViewModel
 import edu.kdmk.greengrocer.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
 import java.io.File
@@ -164,7 +160,7 @@ fun HomeScreen(
                         }
                     )
                 }
-            ) { paddingValues ->
+            ) { innerPadding ->
                 PostList(
                     posts = posts,
                     homeViewModel = homeViewModel,
@@ -175,7 +171,7 @@ fun HomeScreen(
                     },
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
+                        .padding(horizontal = innerPadding.calculateStartPadding(LayoutDirection.Ltr), vertical = 0.dp)
                 )
             }
 
@@ -183,7 +179,7 @@ fun HomeScreen(
                 onClick = { navController.navigate("addPost") },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(16.dp)
+                    .padding(16.dp),
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
@@ -197,10 +193,6 @@ fun HomeScreen(
             selectedPost?.let { post ->
                 CommentsScreen(
                     post = post,
-                    onCommentClicked = { post ->
-                        selectedPost = post  // Ustawiamy wybrany post
-                        isCommentScreen = true  // Przełączamy na ekran komentarzy
-                    },
                     onBackClicked = { isCommentScreen = false },
                     homeViewModel = homeViewModel
                 )
@@ -221,7 +213,7 @@ fun PostList(
 
     LazyColumn(
         state = listState,
-        modifier = modifier
+        modifier = modifier.padding(top = 84.dp)
     ) {
         items(sortedPosts.size) { index ->
             PostItem(
@@ -391,52 +383,60 @@ fun Timestamp.toReadableTime(): String {
     return formatter.format(this.toDate())
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentsScreen(
-    post: Post,  // Przekazujemy post, który będzie wyświetlany na tym ekranie
+    post: Post,
     onBackClicked: () -> Unit,
-    onCommentClicked: (Post) -> Unit,
-    homeViewModel: HomeViewModel // Przekazujemy ViewModel, aby dodać komentarz
+    homeViewModel: HomeViewModel
 ) {
-    // Przechowujemy lokalny stan postu, aby móc go modyfikować
-    var localPost by remember { mutableStateOf(post) }
+    val comments by homeViewModel.comments.observeAsState(emptyList())
 
-    // Sortowanie komentarzy
-    val sortedComments = localPost.comments?.sortedBy { it.timestamp?.toDate()?.time } ?: emptyList()
+    LaunchedEffect(post.id) {
+        homeViewModel.loadComments(post.id ?: "")
+    }
 
-    // Zmienna do przechowywania tekstu nowego komentarza
+    val sortedComments = comments.sortedByDescending { it.timestamp?.toDate()?.time } ?: emptyList()
+
     var newComment by remember { mutableStateOf("") }
 
-    // Scaffold - layout strukturalny z topBar
     Scaffold(
         topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .clickable {
-                            onBackClicked()
-                        }
-                        .clip(RoundedCornerShape(8.dp))
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
+            CenterAlignedTopAppBar(
+                title = {
                     Text(
-                        text = "Back",
-                        modifier = Modifier.padding(4.dp)
+                        text = "Comments",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
                     )
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = { onBackClicked() },
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            homeViewModel.loadComments(post.id ?: "")
+                        },
+                        modifier = Modifier.padding(end = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Refresh,
+                            contentDescription = "Refresh Comments"
+                        )
+                    }
                 }
-            }
+            )
         }
     ) { innerPadding ->
         Column(
@@ -444,66 +444,51 @@ fun CommentsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Używamy Box, aby przyczepić TextField do góry
-            Box(
-                modifier = Modifier.fillMaxSize()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp, 8.dp, 16.dp, 0.dp)
             ) {
-                // Wyświetlanie komentarzy
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 80.dp) // Zwiększamy górne odstępy, by tekst nie nakładał się na TextField
-                ) {
-                    items(sortedComments) { comment ->
-                        CommentItem(comment = comment)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
-
-                // TextField do dodania komentarza przytwierdzone do góry
-                Column(
+                TextField(
+                    value = newComment,
+                    onValueChange = { newComment = it },
+                    label = { Text("Add a comment...") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
-                        .align(Alignment.TopCenter)
-                ) {
-                    // Row z TextField i przyciskiem "Save"
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                    ) {
-                        // Pole tekstowe do wpisania komentarza
-                        TextField(
-                            value = newComment,
-                            onValueChange = { newComment = it },
-                            label = { Text("Add a comment...") },
-                            modifier = Modifier
-                                .fillMaxWidth(0.85f) // Zmniejszamy szerokość, żeby zostało miejsce na przycisk
-                                .padding(end = 8.dp), // Odstęp między TextField a przyciskiem
-                            singleLine = false,
-                            maxLines = 3
-                        )
+                        .padding(bottom = 8.dp),
+                    singleLine = false,
+                    maxLines = 3,
+                    textStyle = TextStyle(fontSize = 16.sp)
+                )
 
-                        IconButton(
-                            onClick = {
-                                if (newComment.isNotBlank()) {
-                                    // Dodaj komentarz do bazy danych i zaktualizuj UI
-                                    homeViewModel.addComment(
-                                        postId = post.id ?: "",
-                                        content = newComment,
-                                    )
-                                }
-                                onBackClicked()
-                                onCommentClicked(post)
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Save,
-                                contentDescription = "Save Comment"
+                IconButton(
+                    onClick = {
+                        if (newComment.isNotBlank()) {
+                            homeViewModel.addComment(
+                                postId = post.id ?: "",
+                                content = newComment,
                             )
+                            newComment = ""
                         }
-                    }
+                    },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Save,
+                        contentDescription = "Save Comment"
+                    )
+                }
+            }
+
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                items(sortedComments) { comment ->
+                    CommentItem(comment = comment)
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -517,7 +502,6 @@ fun CommentItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
     ) {
         Column(
             modifier = Modifier

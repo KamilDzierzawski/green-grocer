@@ -6,7 +6,6 @@ import androidx.lifecycle.MutableLiveData
 import com.google.firebase.Timestamp
 import edu.kdmk.greengrocer.data.model.Comment
 import edu.kdmk.greengrocer.data.model.Like
-import edu.kdmk.greengrocer.data.model.Plant
 import edu.kdmk.greengrocer.data.model.Post
 import edu.kdmk.greengrocer.data.repository.CommentDatabaseRepository
 import edu.kdmk.greengrocer.data.repository.LikeDatabaseRepository
@@ -17,9 +16,8 @@ import edu.kdmk.greengrocer.data.repository.PostDatabaseRepository
 import edu.kdmk.greengrocer.data.repository.PostStorageRepository
 import edu.kdmk.greengrocer.data.repository.UserDatabaseRepository
 import edu.kdmk.greengrocer.data.repository.UserStorageRepository
-import java.io.File
 
-class HomeViewModel(
+class SearchViewModel(
     private val localStorageRepository: LocalStorageRepository,
     private val plantDatabaseRepository: PlantDatabaseRepository,
     private val plantStorageRepository: PlantStorageRepository,
@@ -31,9 +29,7 @@ class HomeViewModel(
     private val commentDatabaseRepository: CommentDatabaseRepository
 ) {
 
-    private val _plants = MutableLiveData<List<Plant>>()
-    val plants: LiveData<List<Plant>> get() = _plants
-
+    var currentUser = localStorageRepository.getUserData()
 
     private val _posts = MutableLiveData<List<Post>>()
     val posts: LiveData<List<Post>> get() = _posts
@@ -41,9 +37,19 @@ class HomeViewModel(
     private val _comments = MutableLiveData<List<Comment>>()
     val comments: LiveData<List<Comment>> get() = _comments
 
+    private val _loading = MutableLiveData<Boolean>()
+    val loading: LiveData<Boolean> = _loading
 
-
-    var currentUser = localStorageRepository.getUserData()
+    fun loadPosts(
+        searchText: String,
+        searchTag: String
+    ) {
+        _loading.value = true
+        getPosts(searchText, searchTag) { postList ->
+            _posts.postValue(postList)
+        }
+        _loading.value = false
+    }
 
     fun loadComments(postId: String) {
         commentDatabaseRepository.getComments(
@@ -57,99 +63,14 @@ class HomeViewModel(
         )
     }
 
-    fun loadPlants() {
-        getPlantsFromGarden { plantList ->
-            _plants.postValue(plantList)
-        }
-    }
-
-    private fun getPlantsFromGarden(
-        onSuccess: (List<Plant>) -> Unit,
+    private fun getPosts(
+        searchText: String,
+        searchTag: String,
+        onSuccess: (List<Post>) -> Unit
     ) {
-        plantDatabaseRepository.getPlants(
-            userId = localStorageRepository.getUserData()?.id ?: "",
-            onSuccess = { plants ->
-                val updatedPlants = mutableListOf<Plant>()
-                var processedCount = 0
-
-                // Funkcja pomocnicza do zakończenia operacji
-                fun checkCompletion() {
-                    if (processedCount == plants.size) {
-                        onSuccess(updatedPlants)
-                    }
-                }
-
-                plants.forEach { plant ->
-                    plantStorageRepository.getPlantImage(
-                        plant,
-                        onSuccess = { image ->
-                            updatedPlants.add(plant.copy(image = image))
-                            processedCount++
-                            checkCompletion()
-                        },
-                        onFailure = { exception ->
-                            Log.e("GardenViewModel", "Failed to retrieve plant image for ${plant.id}: ${exception.message}")
-                            processedCount++
-                            checkCompletion()
-                        }
-                    )
-                }
-
-                if (plants.isEmpty()) {
-                    onSuccess(emptyList())
-                }
-            },
-            onFailure = { exception ->
-                Log.e("GardenViewModel", "Failed to retrieve plants from garden: ${exception.message}")
-            }
-        )
-    }
-
-    fun addPost(
-        type: String,
-        title: String,
-        description: String,
-        image: File?,
-        timestamp: Timestamp
-    ) {
-        val post = Post(
-            userId = currentUser?.id,
-            type = type,
-            title = title,
-            description = description,
-            image = image,
-            timestamp = timestamp
-        )
-
-        postDatabaseRepository.addPost(
-            post,
-            onSuccess = { updatedPost ->
-                if (image != null) {
-                    postStorageRepository.addPostImage(
-                        post = updatedPost,
-                        onSuccess = {
-                            Log.d("HomeViewModel", "Post added successfully")
-                        },
-                        onFailure = { exception ->
-                            Log.e("HomeViewModel", "Failed to add post image: ${exception.message}")
-                        }
-                    )
-                }
-            },
-            onFailure = { exception ->
-                Log.e("HomeViewModel", "Failed to add post: ${exception.message}")
-            }
-        )
-    }
-
-    fun loadPosts() {
-        getPosts { postList ->
-            _posts.postValue(postList)
-        }
-    }
-
-    private fun getPosts(onSuccess: (List<Post>) -> Unit) {
-        postDatabaseRepository.getAllPosts(
+        postDatabaseRepository.getFilteredPosts(
+            searchText = searchText,
+            searchTag = searchTag,
             onSuccess = { posts ->
                 processPostsSequentially(
                     posts = posts,
