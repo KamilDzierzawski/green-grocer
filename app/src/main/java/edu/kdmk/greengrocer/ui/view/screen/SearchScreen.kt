@@ -280,7 +280,7 @@ fun PostSearchItem(
             ) {
                 Image(
                     painter = rememberAsyncImagePainter(post.postUser?.image?.path ?: ""),
-                    contentDescription = null,
+                    contentDescription = "User Image",
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape),
@@ -330,7 +330,7 @@ fun PostSearchItem(
 
                 Image(
                     painter = rememberAsyncImagePainter(imageUri),
-                    contentDescription = null,
+                    contentDescription = "Post Image",
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f),

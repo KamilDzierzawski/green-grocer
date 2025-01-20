@@ -181,8 +181,7 @@ fun HomeScreen(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
-                    contentDescription = "Add Post",
-                    tint = Color.White
+                    contentDescription = "Add Post"
                 )
             }
 
@@ -245,7 +244,7 @@ fun PostItem(
             ) {
                 Image(
                     painter = rememberAsyncImagePainter(post.postUser?.image?.path ?: ""),
-                    contentDescription = null,
+                    contentDescription = "User profile image",
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape),
@@ -295,11 +294,12 @@ fun PostItem(
 
                 Image(
                     painter = rememberAsyncImagePainter(imageUri),
-                    contentDescription = null,
+                    contentDescription = "Post image",
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f),
-                    contentScale = ContentScale.Crop  )
+                    contentScale = ContentScale.Crop,
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
