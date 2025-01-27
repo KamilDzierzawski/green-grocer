@@ -143,20 +143,16 @@ class HomeViewModel(
     }
 
     fun loadPosts() {
-        getPosts { postList ->
-            _posts.postValue(postList)
-        }
-    }
-
-    private fun getPosts(onSuccess: (List<Post>) -> Unit) {
         postDatabaseRepository.getAllPosts(
-            onSuccess = { posts ->
+            onSuccess = { fetchedPosts ->
+                _posts.postValue(fetchedPosts) // Przypisanie pobranych postów do LiveData
                 processPostsSequentially(
-                    posts = posts,
-                    onSuccess = onSuccess,
+                    posts = fetchedPosts,
+                    onSuccess = { updatedPosts ->
+                        _posts.postValue(updatedPosts) // Uzupełnienie LiveData o dodatkowe dane
+                    },
                     onFailure = { exception ->
                         Log.e("HomeViewModel", "Error processing posts: ${exception.message}")
-                        onSuccess(posts) // Zwraca listę bez dodatkowych danych w przypadku błędu
                     }
                 )
             },
@@ -216,7 +212,6 @@ class HomeViewModel(
         }
     }
 
-
     private fun fetchPostUsers(
         posts: List<Post>,
         onSuccess: (List<Post>) -> Unit,
@@ -236,11 +231,9 @@ class HomeViewModel(
             userDatabaseRepository.getPostUserFromDatabase(
                 id = userId,
                 onSuccess = { postUser ->
-                    // Pobierz zdjęcie profilowe użytkownika
                     userStorageRepository.downloadUserProfileImage(
                         userId = userId,
                         onSuccess = { profileImage ->
-
                             val updatedPostUser = postUser.copy(image = profileImage)
                             updatedPosts.add(post.copy(postUser = updatedPostUser))
                             processedCount++
@@ -248,7 +241,6 @@ class HomeViewModel(
                         },
                         onFailure = { exception ->
                             Log.e("HomeViewModel", "Failed to download profile image for user $userId: ${exception.message}")
-                            // Dodaj użytkownika bez zdjęcia
                             updatedPosts.add(post.copy(postUser = postUser))
                             processedCount++
                             checkCompletion()
@@ -257,7 +249,6 @@ class HomeViewModel(
                 },
                 onFailure = { exception ->
                     Log.e("HomeViewModel", "Failed to retrieve post user for ${post.id}: ${exception.message}")
-                    // Dodaj post bez użytkownika
                     updatedPosts.add(post)
                     processedCount++
                     checkCompletion()
@@ -294,7 +285,7 @@ class HomeViewModel(
                 },
                 onFailure = { exception ->
                     Log.e("HomeViewModel", "Failed to retrieve likes for post ${post.id}: ${exception.message}")
-                    updatedPosts.add(post.copy(likes = emptyList())) // Dodaj post z pustą listą lików w przypadku błędu
+                    updatedPosts.add(post.copy(likes = emptyList()))
                     processedCount++
                     checkCompletion()
                 }
@@ -330,7 +321,7 @@ class HomeViewModel(
                 },
                 onFailure = { exception ->
                     Log.e("HomeViewModel", "Failed to retrieve comments for post ${post.id}: ${exception.message}")
-                    updatedPosts.add(post.copy(comments = emptyList())) // Dodaj post z pustą listą komentarzy w przypadku błędu
+                    updatedPosts.add(post.copy(comments = emptyList()))
                     processedCount++
                     checkCompletion()
                 }
