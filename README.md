@@ -1,6 +1,6 @@
 # Green Grocer
 
-Green Grocer is a mobile application developed using Kotlin and Jetpack Compose. It leverages Firebase services, including Firebase Authentication for user registration and login, Firebase Database for storing data, and Firebase Storage for managing images. The application provides features such as user authentication, post browsing and creation, a virtual garden for managing plants, and a user profile section.
+Green Grocer is a mobile application designed for connecting plant enthusiasts. It allows users to create their virtual gardens and share them with other users. The app is developed using Kotlin and Jetpack Compose, and it uses Firebase services, including Firebase Authentication for user registration and login, Firebase Database for storing data, and Firebase Storage for managing images. The application provides features such as user authentication, post browsing and creation, a virtual garden for managing plants, and a user profile section.
 
 ## 🔐 User Authentication
 
